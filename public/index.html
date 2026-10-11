@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gout Care</title>
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<div id="toast" role="status"></div>
+<div id="bye"></div>
+
+<!-- Layar login / daftar -->
+<div id="auth" hidden></div>
+
+<!-- Aplikasi (setelah login) -->
+<div id="app" hidden>
+  <div class="fz noprint">
+    <div><span id="who"></span> <button onclick="Act.go('akun')">👤 Akun</button></div>
+    <div>Ukuran huruf <button onclick="Act.fzoom(-0.1)">A-</button><button onclick="Act.fzoom(0)">A</button><button onclick="Act.fzoom(0.1)">A+</button></div>
+  </div>
+  <div class="w"><div id="hero"></div><div id="v"></div></div>
+  <nav id="tabbar" class="noprint" aria-label="Menu utama"><div class="in" id="tabin"></div></nav>
+</div>
+
+<!-- Pustaka PDF (opsional, butuh internet; tanpa ini tombol PDF memakai dialog cetak) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Urutan penting: data -> util -> api -> database -> auth -> store -> tampilan -> app -->
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/store.js"></script>
+<script src="js/views/auth.js"></script>
+<script src="js/views/home.js"></script>
+<script src="js/views/rapor.js"></script>
+<script src="js/views/food.js"></script>
+<script src="js/views/lab.js"></script>
+<script src="js/views/imt.js"></script>
+<script src="js/views/reminder.js"></script>
+<script src="js/views/vitals.js"></script>
+<script src="js/views/foodlist.js"></script>
+<script src="js/views/edu.js"></script>
+<script src="js/views/account.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+</body></html>
