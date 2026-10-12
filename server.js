@@ -8,6 +8,7 @@ import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createHandler } from "./src/api.js";
 import { createFileStorage } from "./src/storage-file.js";
+import { runReminders } from "./src/reminders.js";
 
 try {
   process.loadEnvFile();
@@ -42,6 +43,13 @@ if (!process.env.JWT_SECRET) {
 const storage = createFileStorage(DATA_FILE);
 await storage.init(); // membuat data/db.json bila belum ada
 const handle = createHandler({ storage, env: process.env });
+
+/* Penjadwal pengingat email: cek tiap menit (matikan dengan REMINDERS_ENABLED=false) */
+if (String(process.env.REMINDERS_ENABLED ?? "true").toLowerCase() !== "false") {
+  const tick = () => runReminders({ storage, env: process.env }).then((r) => r.sent && console.log("[reminders] terkirim:", r.sent)).catch((e) => console.error("[reminders]", e.message));
+  setInterval(tick, 60000).unref();
+  setTimeout(tick, 5000).unref();
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",

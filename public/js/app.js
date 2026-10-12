@@ -36,4 +36,12 @@ Act.bye=()=>{const u=Auth.current(),m=Store.meals(),t=U.dayTot(m,U.today()),lg=m
 const A=lg&&t<=u.lim?["Hebat! Purinmu hari ini terkendali. Langkah kecil yang konsisten membuat sendimu makin nyaman. 💚","Kamu sudah merawat dirimu dengan baik hari ini. Teruskan ya! 🌟"]:lg?["Satu hari yang belum sempurna bukan masalah. Kamu sudah hebat karena mau mencatat, besok kesempatan baru. 🌱","Mencatat jujur itu langkah berani. Pelan-pelan, kamu pasti bisa! 💪"]:["Terima kasih sudah mampir. Mencatat satu menu saja sudah langkah baik untuk besok. 🌿","Kesehatanmu berharga. Sampai jumpa, jangan lupa minum air putih ya! 💧"];
 const o=U.$("bye");o.innerHTML='<div><div style="font-size:44px">🌈</div><h2>Sampai jumpa, '+U.esc(u.nama)+'!</h2><p>'+A[new Date().getDate()%A.length]+'</p><div class="g" style="justify-content:center;margin-top:12px"><button onclick="document.getElementById(\'bye\').style.display=\'none\'">Kembali</button><button class="b" onclick="Act.logout()">Keluar</button></div></div>';o.style.display="flex"};
 
+/* Tema terang/gelap: ikuti pengaturan perangkat, lalu pilihan pengguna disimpan di browser (opsional) */
+const Theme={
+  cur(){const d=document.documentElement.getAttribute("data-theme");return d||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")},
+  paint(){const b=U.$("thm");if(!b)return;const d=Theme.cur()==="dark";b.textContent=d?"☀️ Terang":"🌙 Gelap";b.setAttribute("aria-label",d?"Ganti ke mode terang":"Ganti ke mode gelap")}
+};
+Act.theme=()=>{const n=Theme.cur()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("goutcare.theme",n)}catch(e){}Theme.paint()};
+Theme.paint();
+
 App.init();

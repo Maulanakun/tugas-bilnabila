@@ -2,22 +2,34 @@
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gout Care</title>
+<script>try{var t=localStorage.getItem("goutcare.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<!-- Huruf (opsional, butuh internet; tanpa ini dipakai huruf bawaan perangkat) -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head><body>
 <div id="toast" role="status"></div>
 <div id="bye"></div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mt"></div>
 
 <!-- Layar login / daftar -->
 <div id="auth" hidden></div>
 
 <!-- Aplikasi (setelah login) -->
 <div id="app" hidden>
-  <div class="fz noprint">
-    <div><span id="who"></span> <button onclick="Act.go('akun')">👤 Akun</button></div>
-    <div>Ukuran huruf <button onclick="Act.fzoom(-0.1)">A-</button><button onclick="Act.fzoom(0)">A</button><button onclick="Act.fzoom(0.1)">A+</button></div>
+  <header class="top noprint"><div class="in">
+    <div class="brand"><i aria-hidden="true">🩺</i>Gout Care</div>
+    <div class="who"><span>Halo, <b id="who"></b></span></div>
+    <div class="tools">
+      <button onclick="Act.go('akun')">👤 Akun</button>
+      <button id="thm" onclick="Act.theme()"></button>
+      <span class="zoom" role="group" aria-label="Ukuran huruf"><button onclick="Act.fzoom(-0.1)" aria-label="Perkecil huruf">A-</button><button onclick="Act.fzoom(0)" aria-label="Ukuran huruf normal">A</button><button onclick="Act.fzoom(0.1)" aria-label="Perbesar huruf">A+</button></span>
+    </div>
+  </div></header>
+  <div class="shell">
+    <main class="main"><div class="w"><div id="hero"></div><div id="v"></div></div></main>
+    <nav id="tabbar" class="noprint" aria-label="Menu utama"><div class="in" id="tabin"></div></nav>
   </div>
-  <div class="w"><div id="hero"></div><div id="v"></div></div>
-  <nav id="tabbar" class="noprint" aria-label="Menu utama"><div class="in" id="tabin"></div></nav>
 </div>
 
 <!-- Pustaka PDF (opsional, butuh internet; tanpa ini tombol PDF memakai dialog cetak) -->
@@ -38,6 +50,8 @@
 <script src="js/views/imt.js"></script>
 <script src="js/views/reminder.js"></script>
 <script src="js/views/vitals.js"></script>
+<script src="js/views/complaint.js"></script>
+<script src="js/views/history.js"></script>
 <script src="js/views/foodlist.js"></script>
 <script src="js/views/edu.js"></script>
 <script src="js/views/account.js"></script>

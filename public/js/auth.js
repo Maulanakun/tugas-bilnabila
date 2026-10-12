@@ -63,6 +63,7 @@ const Auth=(()=>{
     if(p.bb!==undefined)ok.bb=p.bb;
     if(p.tb!==undefined)ok.tb=p.tb;
     if(p.lim===150||p.lim===400)ok.lim=p.lim;
+    if(typeof p.remEmail==="boolean")ok.remEmail=p.remEmail;
     DB.profile(ok);
   }
   return{current,register,login,restore,refresh,logout,changePassword,deleteAccount,patch};

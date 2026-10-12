@@ -12,6 +12,8 @@ import {
   safeEqual,
 } from "./crypto.js";
 import { applyOps, publicUser, blankDoc, TABLES } from "./ops.js";
+import { sendMail, mailConfigured } from "./mailer.js";
+import { buildEmail } from "./reminders.js";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const optNum = (v, lo, hi) => {
@@ -38,7 +40,7 @@ export function createHandler({ storage, env }) {
   const fail = (status, error) => J(status, { error });
   const payload = (doc) => ({
     user: publicUser(doc.user),
-    data: Object.fromEntries(TABLES.map((t) => [t, doc[t]])),
+    data: Object.fromEntries(TABLES.map((t) => [t, doc[t] || []])),
   });
   const issue = (doc) =>
     signToken(
@@ -169,6 +171,23 @@ export function createHandler({ storage, env }) {
           const r = applyOps(fresh, b.ops);
           if (r.changed) await storage.saveDoc(fresh);
           return J(200, { ok: true, applied: r.applied, rejected: r.rejected });
+        });
+      }
+
+      /* Kirim email percobaan ke alamat akun (jeda 60 detik antar kirim) */
+      if (key === "POST /api/me/test-email") {
+        const doc = await auth(req);
+        if (!doc) return noAuth();
+        if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).");
+        return storage.lock(doc.user.id, async () => {
+          const fresh = await storage.getDoc(doc.user.id);
+          if (!fresh) return noAuth();
+          if (fresh.user.testAt && Date.now() - fresh.user.testAt < 60000) return fail(429, "Tunggu sebentar sebelum mengirim email percobaan lagi.");
+          const r = await sendMail({ to: fresh.user.email, ...buildEmail(fresh.user, [], env.APP_URL || env.URL || "", { test: true }) }, env);
+          if (!r.ok) return fail(502, r.error);
+          fresh.user.testAt = Date.now();
+          await storage.saveDoc(fresh);
+          return J(200, { ok: true, to: fresh.user.email });
         });
       }
 

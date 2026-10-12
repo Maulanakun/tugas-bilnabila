@@ -32,6 +32,11 @@ export async function createBlobStorage(name = "gout-care") {
       await store.delete(userKey(doc.user.id));
       await store.delete(emailKey(doc.user.email));
     },
+    async allDocs() {
+      const { blobs } = await store.list({ prefix: "users/" }), out = [];
+      for (const b of blobs) { const d = await store.get(b.key, { type: "json" }); if (d) { TABLES.forEach((t) => { if (!Array.isArray(d[t])) d[t] = []; }); out.push(d); } }
+      return out;
+    },
     /* Gabungkan semua dokumen user menjadi skema satu-file (sama dengan db.json lokal) */
     async exportAll() {
       const out = { app: "gout-care", version: 2, users: [] };

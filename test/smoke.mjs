@@ -52,6 +52,16 @@ try {
   assert.equal(r.j.data.labs.length, 1); assert.equal(r.j.data.labs[0].v, 7.1); assert.equal(r.j.data.labs[0].userId, idA); assert.equal(r.j.data.labs[0].id, "lab1");
   assert.equal(r.j.user.lim, 150); assert.equal(r.j.user.email, "budi@mail.com"); ok("userId dipaksa ke pemilik; email/pass/id tak bisa diubah lewat ops");
 
+  r = await call("POST", "/api/me/ops", { ops: [
+    { op: "insert", t: "complaints", row: { id: "c1", userId: "orang-lain", d: "2026-10-12", t: "08:30", gejala: ["Nyeri sendi", "Demam"], lain: "Nyeri pergelangan kaki" } },
+    { op: "insert", t: "complaints", row: { id: "c2", d: "2026-10-12", t: "25:99", gejala: [], lain: "" } },
+    { op: "insert", t: "complaints", row: { id: "c3", d: "2026-10-12", gejala: ["Bengkak"] } },
+    { op: "insert", t: "complaints", row: { id: "c4", d: "2026-10-12", t: "09:00", gejala: ["Bengkak"] } },
+  ] }, A);
+  assert.deepEqual(r.j.rejected.map((x) => x.i), [1, 2]);
+  r = await call("GET", "/api/me", null, A);
+  assert.equal(r.j.data.complaints.length, 2); assert.equal(r.j.data.complaints[0].userId, idA); assert.equal(r.j.data.complaints[0].lain, "Nyeri pergelangan kaki"); assert.deepEqual(r.j.data.complaints[1].gejala, ["Bengkak"]); assert.equal(r.j.data.complaints[1].lain, ""); ok("keluhan (complaints): disimpan, jam di luar 00:00-23:59 / tanpa jam ditolak, userId dipaksa ke pemilik");
+
   const B = (await call("POST", "/api/register", { nama: "Sari", email: "sari@mail.com", password: "rahasia2" })).j.token;
   assert.equal((await call("GET", "/api/me", null, B)).j.data.labs.length, 0);
   await call("POST", "/api/me/ops", { ops: [{ op: "remove", t: "labs", id: "lab1" }] }, B);

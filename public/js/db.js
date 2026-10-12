@@ -7,9 +7,10 @@
    Tabel (baris terhubung ke akun lewat userId):
      labs {id,userId,d,v}   meals {id,userId,d,w,n,g,p}   vitals {id,userId,d,td,k}
      reminders {id,userId,key,title,freq,time,on}          moods {id,userId,d,mood,gejala[]}
+     complaints {id,userId,d,t,gejala[],lain}
    ============================================================ */
 const DB=(()=>{
-  const TABLES=["labs","meals","vitals","reminders","moods"];
+  const TABLES=["labs","meals","vitals","reminders","moods","complaints"];
   const blank=()=>{const d={};TABLES.forEach(t=>d[t]=[]);return d};
   let user=null,data=blank(),queue=[],busy=false,timer=null,retry=0,failed=false,lostFn=null;
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,9);

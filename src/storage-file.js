@@ -67,6 +67,7 @@ export function createFileStorage(file) {
       TABLES.forEach((t) => { db[t] = db[t].filter((r) => r.userId !== id); });
       await persist();
     },
+    async allDocs() { await ensure(); return db.users.map(docOf); },
     async exportAll() { await ensure(); return structuredClone(db); },
   };
 }

@@ -1,20 +1,24 @@
 /* Hero (sapaan + mood) dan tab Ringkasan */
 Views.hero=()=>{const u=Auth.current(),h=new Date().getHours(),g=h<11?"Selamat pagi":h<15?"Selamat siang":h<18?"Selamat sore":"Selamat malam";
-const md=Store.mood(U.today()),mood=md.mood,gej=md.gejala||[];
+const md=Store.mood(U.today()),mood=md.mood;
 const M=[["😊","Baik"],["😐","Biasa"],["😣","Ada keluhan"]];
-const msg=mood===0?"Senang mendengarnya! Pertahankan minum air putih dan catat makananmu hari ini.":mood===1?"Tidak apa-apa. Istirahat cukup dan jaga makan hari ini ya.":mood===2?"Terima kasih sudah jujur. Pilih keluhan di bawah agar tercatat.":"Bagaimana kabarmu hari ini?";
+const tc=Store.complaints().filter(c=>c.d===U.today()),tg=[...new Set(tc.flatMap(c=>c.gejala))];
+const msg=mood===0?"Senang mendengarnya! Pertahankan minum air putih dan catat makananmu hari ini.":mood===1?"Tidak apa-apa. Istirahat cukup dan jaga makan hari ini ya.":mood===2?"Terima kasih sudah jujur. Catat keluhanmu agar masuk ke laporan dan riwayat.":"Bagaimana kabarmu hari ini?";
 return`<div class="hero"><small>${new Date().toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</small><h1>${g}, ${U.esc(u.nama)} <span class="wave">👋</span></h1><p>${msg}</p><span class="chip">🔥 ${U.streak(Store.meals())} hari berturut-turut mencatat</span><span class="chip">🩺 Gout Care</span>
 <div class="mood">${M.map((m,i)=>`<button class="${mood===i?"on":""}" onclick="Act.mood(${i})"><span>${m[0]}</span>${m[1]}</button>`).join("")}</div>
-${mood===2?`<div class="g" style="margin-top:12px">${["Nyeri sendi","Bengkak","Kemerahan","Sulit berjalan","Demam"].map(x=>`<button style="background:rgba(255,255,255,.92);color:#18272a;${gej.includes(x)?"outline:3px solid #fde047":""}" onclick="Act.gejala('${x}')">${x}</button>`).join("")}</div>${gej.includes("Demam")||gej.length>=3?'<p style="margin-top:8px"><b>⚠️ Gejala ini perlu diperiksa. Segera hubungi tenaga kesehatan.</b></p>':""}`:""}</div>`};
+${mood===2?`<div class="g" style="margin-top:12px"><button style="background:rgba(255,255,255,.92);color:#18272a" onclick="Act.openComplaint()">✍️ Catat keluhan</button></div>${tc.length?`<p style="margin-top:8px">Hari ini tercatat <b>${tc.length} keluhan</b>${tg.length?": "+U.esc(tg.join(", ")):""}. Lihat di tab Riwayat.</p>`:""}${U.urgent(tg)?`<div class="warn"><b>${WARN_TXT}</b></div>`:""}`:""}</div>`};
 
 Views.home=()=>{const u=Auth.current(),labs=Store.labs(),meals=Store.meals(),vits=Store.vitals(),l=labs.at(-1),t=U.dayTot(meals,U.today()),v=vits.at(-1);
 const empty=!labs.length&&!meals.length&&!vits.length;
 return`${empty?`<div class="c"><h2>Selamat datang, ${U.esc(u.nama)}! 🌱</h2><p class="mu">Akunmu masih kosong. Mulai dengan mencatat satu hal hari ini, atau coba dulu dengan data contoh.</p><div class="g" style="margin-top:8px"><button onclick="Act.go('food')">🍽️ Catat makan</button><button onclick="Act.go('lab')">🧪 Catat asam urat</button><button onclick="Act.seedDemo()">✨ Isi data contoh</button></div></div>`:""}
-<div class="c"><h2>Ringkasan hari ini</h2><p>Asam urat terakhir: ${l?`<b>${l.v} mg/dL</b> <span class="t ${U.st(l.v,u.jk)[1]}">${U.st(l.v,u.jk)[0]}</span>`:'<span class="mu">belum ada data</span>'}</p><p>Purin hari ini: <b>${t} mg</b> dari batas ${u.lim} mg</p><p>Tensi terakhir: ${v?`<b>${U.esc(v.td)}</b> (${v.d})`:'<span class="mu">belum ada data</span>'}</p></div>
+<div class="c"><h2>Ringkasan hari ini</h2><div class="stats">
+<div class="stat"><span class="k">Asam urat terakhir</span>${l?`<span class="v">${l.v}<small>mg/dL</small></span><span class="s"><span class="t ${U.st(l.v,u.jk)[1]}">${U.st(l.v,u.jk)[0]}</span></span>`:'<span class="v mu" style="font-size:16px;font-weight:400">belum ada data</span>'}</div>
+<div class="stat"><span class="k">Purin hari ini</span><span class="v">${t}<small>mg</small></span><span class="s">dari batas ${u.lim} mg</span><div class="bar"><i class="${t>u.lim?"over":""}" style="width:${Math.min(100,t/u.lim*100)}%"></i></div></div>
+<div class="stat"><span class="k">Tensi terakhir</span>${v?`<span class="v">${U.esc(v.td)}</span><span class="s">${v.d}</span>`:'<span class="v mu" style="font-size:16px;font-weight:400">belum ada data</span>'}</div>
+</div></div>
 <div class="c"><h2>Perkembangan asam urat</h2>${U.chart(labs)||'<p class="mu">Catat minimal 2 hasil cek asam urat untuk melihat grafik.</p>'}</div>`};
 
-Act.mood=i=>{Store.setMood(U.today(),{mood:i});App.render()};
-Act.gejala=g=>{const a=[...(Store.mood(U.today()).gejala||[])],i=a.indexOf(g);i<0?a.push(g):a.splice(i,1);Store.setMood(U.today(),{gejala:a});App.render()};
+Act.mood=i=>{Store.setMood(U.today(),{mood:i});App.render();if(i===2)Act.openComplaint()};
 
 /* Data contoh (relatif terhadap hari ini) untuk mencoba aplikasi */
 Act.seedDemo=()=>{

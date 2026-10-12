@@ -18,6 +18,9 @@ const Store=(()=>{
     reminders:()=>mine("reminders"),
     mood:d=>mine("moods").find(m=>m.d===d)||{mood:null,gejala:[]},
     setMood(d,patch){const r=mine("moods").find(m=>m.d===d);r?DB.update("moods",r.id,patch):DB.insert("moods",Object.assign({userId:uid(),d,mood:null,gejala:[]},patch))},
+    moods:()=>mine("moods"),
+    complaints:()=>mine("complaints").sort((a,b)=>(a.d+a.t)<(b.d+b.t)?-1:(a.d+a.t)>(b.d+b.t)?1:0),
+    addComplaint:(d,t,gejala,lain)=>DB.insert("complaints",{userId:uid(),d,t,gejala,lain}),
     update:(t,id,patch)=>{if(owned(t,id))DB.update(t,id,patch)},
     remove:(t,id)=>{if(owned(t,id))DB.remove(t,id)}
   };
