@@ -7,7 +7,11 @@ import { TABLES } from "./ops.js";
 
 export async function createBlobStorage(name = "gout-care") {
   const { getStore } = await import("@netlify/blobs");
-  const store = getStore({ name, consistency: "strong" });
+  /* PENTING: store dibuat ulang setiap operasi. Token Blobs di Netlify berlaku singkat dan diperbarui
+     per invocation; kalau store disimpan lintas request, container yang masih hangat memakai token
+     kedaluwarsa ("Failed to decode token: Token expired"). getStore() murah, tidak ada panggilan jaringan. */
+  const fresh = () => getStore({ name, consistency: "strong" });
+  const store = new Proxy({}, { get: (_t, m) => (...a) => fresh()[m](...a) });
   const emailKey = (e) => "emails/" + createHash("sha256").update(e).digest("hex");
   const userKey = (id) => "users/" + id;
 
