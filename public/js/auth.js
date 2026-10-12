@@ -15,7 +15,7 @@ const Auth=(()=>{
     try{
       const r=await Api.req("POST","/register",{nama,email,password:f.password,jk:f.jk,bb:f.bb,tb:f.tb});
       Api.setToken(r.token);DB.load(r);
-      DEF_REM.forEach(x=>DB.insert("reminders",{userId:r.user.id,key:x[0],title:x[1],freq:x[2],time:x[3],on:x[4]}));
+      if(r.user.role!=="admin")DEF_REM.forEach(x=>DB.insert("reminders",{userId:r.user.id,key:x[0],title:x[1],freq:x[2],time:x[3],on:x[4]}));
       return{ok:true};
     }catch(e){return{error:e.message}}
   }

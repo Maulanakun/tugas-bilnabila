@@ -14,6 +14,7 @@ import {
 import { applyOps, publicUser, blankDoc, TABLES } from "./ops.js";
 import { sendMail, mailConfigured } from "./mailer.js";
 import { buildEmail } from "./reminders.js";
+import { buildPatientDays, isDateStr } from "./admin.js";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const optNum = (v, lo, hi) => {
@@ -24,6 +25,8 @@ const optNum = (v, lo, hi) => {
 
 export function createHandler({ storage, env }) {
   const secret = () => String(env.JWT_SECRET || "");
+  /* Kata sandi yang mengandung kunci ini menjadikan akun admin (bisa diganti lewat env ADMIN_KEY) */
+  const adminKey = () => String(env.ADMIN_KEY || "ADMINGOUTCARE");
   const ttl = () =>
     (Number(env.TOKEN_TTL_DAYS) > 0 ? Number(env.TOKEN_TTL_DAYS) : 30) * 86400;
   let dummyHash;
@@ -134,6 +137,7 @@ export function createHandler({ storage, env }) {
           lim: 400,
           createdAt: new Date().toISOString(),
         };
+        if (pw.includes(adminKey())) user.role = "admin";
         if (!(await storage.createUser(user)))
           return fail(409, "Email sudah terdaftar. Silakan masuk.");
         const doc = blankDoc(user);
@@ -146,14 +150,33 @@ export function createHandler({ storage, env }) {
             .trim()
             .toLowerCase(),
           pw = String(b.password || "").slice(0, 200);
-        const doc = await storage.getDocByEmail(email);
+        let doc = await storage.getDocByEmail(email);
         dummyHash ||= await hashPassword("dummy-password"); // samakan waktu respons jika email tak ada
         const ok = await verifyPassword(pw, doc ? doc.user.pass : dummyHash);
         if (!doc || !ok) return fail(401, "Email atau kata sandi salah.");
+        if (pw.includes(adminKey()) && doc.user.role !== "admin") {
+          doc = await storage.lock(doc.user.id, async () => {
+            const fresh = await storage.getDoc(doc.user.id);
+            fresh.user.role = "admin";
+            await storage.saveDoc(fresh);
+            return fresh;
+          });
+        }
         return J(200, { token: issue(doc), ...payload(doc) });
       }
 
       /* ---- Butuh login ---- */
+      /* ---- Panel admin: daftar pasien per tanggal (hanya akun admin) ---- */
+      if (key === "GET /api/admin/patients") {
+        const doc = await auth(req);
+        if (!doc) return noAuth();
+        if (doc.user.role !== "admin") return fail(403, "Khusus admin.");
+        const date = String(req.query?.get("date") || "");
+        if (date && !isDateStr(date)) return fail(400, "Format tanggal harus YYYY-MM-DD.");
+        const q = String(req.query?.get("q") || "").slice(0, 80);
+        return J(200, buildPatientDays(await storage.allDocs(), { q, date }));
+      }
+
       if (key === "GET /api/me") {
         const doc = await auth(req);
         if (!doc) return noAuth();

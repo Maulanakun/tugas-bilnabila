@@ -2,9 +2,11 @@
 let ZOOM=1;
 const App={
   render(){
-    const u=Auth.current(),A=U.$("auth"),P=U.$("app");
-    if(!u){P.hidden=true;A.hidden=false;A.innerHTML=Views.auth();return}
-    A.hidden=true;P.hidden=false;
+    const u=Auth.current(),A=U.$("auth"),P=U.$("app"),M=U.$("admin");
+    if(!u){P.hidden=true;M.hidden=true;Adm.ready=false;A.hidden=false;A.innerHTML=Views.auth();return}
+    A.hidden=true;
+    if(u.role==="admin"){P.hidden=true;M.hidden=false;M.innerHTML=Views.admin();Theme.paint();Act.admInit();return}
+    M.hidden=true;P.hidden=false;
     U.$("who").textContent=u.nama;
     U.$("hero").innerHTML=Views.hero();
     U.$("v").innerHTML=(Views[UI.tab]||Views.home)()+'<div class="noprint" style="text-align:center;margin:18px 0"><button class="b" onclick="Act.bye()">Selesai & keluar 👋</button></div>';
@@ -39,7 +41,7 @@ const o=U.$("bye");o.innerHTML='<div><div style="font-size:44px">🌈</div><h2>S
 /* Tema terang/gelap: ikuti pengaturan perangkat, lalu pilihan pengguna disimpan di browser (opsional) */
 const Theme={
   cur(){const d=document.documentElement.getAttribute("data-theme");return d||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")},
-  paint(){const b=U.$("thm");if(!b)return;const d=Theme.cur()==="dark";b.textContent=d?"☀️ Terang":"🌙 Gelap";b.setAttribute("aria-label",d?"Ganti ke mode terang":"Ganti ke mode gelap")}
+  paint(){for(const id of ["thm","thm2"]){const b=U.$(id);if(!b)continue;const d=Theme.cur()==="dark";b.textContent=d?"☀️ Terang":"🌙 Gelap";b.setAttribute("aria-label",d?"Ganti ke mode terang":"Ganti ke mode gelap")}}
 };
 Act.theme=()=>{const n=Theme.cur()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("goutcare.theme",n)}catch(e){}Theme.paint()};
 Theme.paint();

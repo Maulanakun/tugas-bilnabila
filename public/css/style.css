@@ -244,3 +244,9 @@ details ul{padding-left:20px;margin:6px 0}
 .mailcard{display:flex;align-items:center;gap:14px;background:var(--pr-t);border:1px solid color-mix(in srgb,var(--pr) 25%,transparent);border-radius:var(--r-s);padding:14px 16px;margin:12px 0 4px;overflow-wrap:anywhere}
 .mailcard .mi{font-size:22px;flex:none}
 .b:disabled{opacity:.6;cursor:progress}
+
+/* ---------- Panel admin ---------- */
+.adm{max-width:1080px;margin:0 auto;padding:18px 16px 40px}
+.adm th{text-align:left;white-space:nowrap}
+.adm td ul{padding-left:20px}
+.adm tr[tabindex]:focus-visible{outline:2px solid var(--pr);outline-offset:-2px}

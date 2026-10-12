@@ -69,7 +69,7 @@ export function cleanProfile(p) {
   return o;
 }
 
-export const publicUser = (u) => ({ id: u.id, nama: u.nama, email: u.email, jk: u.jk, bb: u.bb, tb: u.tb, lim: u.lim, remEmail: u.remEmail !== false, createdAt: u.createdAt });
+export const publicUser = (u) => ({ id: u.id, nama: u.nama, email: u.email, jk: u.jk, bb: u.bb, tb: u.tb, lim: u.lim, role: u.role === "admin" ? "admin" : "user", remEmail: u.remEmail !== false, createdAt: u.createdAt });
 
 export function blankDoc(user) {
   const d = { user };
