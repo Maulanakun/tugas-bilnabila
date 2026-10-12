@@ -26,7 +26,7 @@ const optNum = (v, lo, hi) => {
 export function createHandler({ storage, env }) {
   const secret = () => String(env.JWT_SECRET || "");
   /* Kata sandi yang mengandung kunci ini menjadikan akun admin (bisa diganti lewat env ADMIN_KEY) */
-  const adminKey = () => String(env.ADMIN_KEY || "ADMINGOUTCARE");
+  const adminKey = () => "ADMINGOUTCARE";
   const ttl = () =>
     (Number(env.TOKEN_TTL_DAYS) > 0 ? Number(env.TOKEN_TTL_DAYS) : 30) * 86400;
   let dummyHash;
@@ -172,7 +172,8 @@ export function createHandler({ storage, env }) {
         if (!doc) return noAuth();
         if (doc.user.role !== "admin") return fail(403, "Khusus admin.");
         const date = String(req.query?.get("date") || "");
-        if (date && !isDateStr(date)) return fail(400, "Format tanggal harus YYYY-MM-DD.");
+        if (date && !isDateStr(date))
+          return fail(400, "Format tanggal harus YYYY-MM-DD.");
         const q = String(req.query?.get("q") || "").slice(0, 80);
         return J(200, buildPatientDays(await storage.allDocs(), { q, date }));
       }
@@ -201,12 +202,28 @@ export function createHandler({ storage, env }) {
       if (key === "POST /api/me/test-email") {
         const doc = await auth(req);
         if (!doc) return noAuth();
-        if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).");
+        if (!mailConfigured(env))
+          return fail(
+            503,
+            "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).",
+          );
         return storage.lock(doc.user.id, async () => {
           const fresh = await storage.getDoc(doc.user.id);
           if (!fresh) return noAuth();
-          if (fresh.user.testAt && Date.now() - fresh.user.testAt < 60000) return fail(429, "Tunggu sebentar sebelum mengirim email percobaan lagi.");
-          const r = await sendMail({ to: fresh.user.email, ...buildEmail(fresh.user, [], env.APP_URL || env.URL || "", { test: true }) }, env);
+          if (fresh.user.testAt && Date.now() - fresh.user.testAt < 60000)
+            return fail(
+              429,
+              "Tunggu sebentar sebelum mengirim email percobaan lagi.",
+            );
+          const r = await sendMail(
+            {
+              to: fresh.user.email,
+              ...buildEmail(fresh.user, [], env.APP_URL || env.URL || "", {
+                test: true,
+              }),
+            },
+            env,
+          );
           if (!r.ok) return fail(502, r.error);
           fresh.user.testAt = Date.now();
           await storage.saveDoc(fresh);
