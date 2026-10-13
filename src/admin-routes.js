@@ -5,7 +5,7 @@ import { SEED_FOODS } from "./foods-seed.js";
 import { localParts, buildEmail } from "./reminders.js";
 import { sendMail, mailConfigured } from "./mailer.js";
 import { hashPassword, newId } from "./crypto.js";
-import { buildUserList, buildAggregate, buildPatientSeries, buildOverview, patientsOf, userSummary, labStatus, tdText } from "./stats.js";
+import { buildUserList, buildAggregate, buildPatientSeries, buildOverview, patientsOf, userSummary, labStatus, tdText, capDoc } from "./stats.js";
 import { buildPatientDays, isDateStr } from "./admin.js";
 import { toCsv, toXlsx } from "./xlsx.js";
 
@@ -62,22 +62,22 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   /* ---------- Pengguna ---------- */
   R["GET /api/admin/users"] = async ({ q }) => {
     const docs = await storage.allDocs();
-    return J(200, buildUserList(docs, { q: String(q.get("q") || "").slice(0, 80), status: q.get("status") || "all", sort: q.get("sort") || "recent" }));
+    return J(200, buildUserList(docs, { q: String(q.get("q") || "").slice(0, 80), status: q.get("status") || "all", sort: q.get("sort") || "recent", today: today() }));
   };
   R["GET /api/admin/daily"] = async ({ q }) => {
     const date = String(q.get("date") || "");
     if (date && !isDateStr(date)) return fail(400, "Format tanggal harus YYYY-MM-DD.");
-    return J(200, buildPatientDays(await storage.allDocs(), { q: String(q.get("q") || "").slice(0, 80), date }));
+    return J(200, buildPatientDays(await storage.allDocs(), { q: String(q.get("q") || "").slice(0, 80), date, today: today() }));
   };
   R["GET /api/admin/patients"] = R["GET /api/admin/daily"]; // nama lama, dipertahankan
   R["GET /api/admin/user"] = async ({ q }) => {
     const id = String(q.get("id") || "");
-    const docs = await storage.allDocs(), d = docs.find((x) => x.user.id === id && x.user.role !== "admin");
-    if (!d) return fail(404, "Pengguna tidak ditemukan.");
-    const t = today(), agg = buildAggregate(docs, t);
+    const docs = await storage.allDocs(), found = docs.find((x) => x.user.id === id && x.user.role !== "admin");
+    if (!found) return fail(404, "Pengguna tidak ditemukan.");
+    const t = today(), d = capDoc(found, t), agg = buildAggregate(docs, t);
     const desc = (a, n) => a.slice().sort((x, y) => ((y.d + (y.t || "")) < (x.d + (x.t || "")) ? -1 : 1)).slice(0, n);
     return J(200, {
-      summary: userSummary(d), series: buildPatientSeries(d, t),
+      summary: userSummary(d, t), series: buildPatientSeries(d, t),
       overall: { lab: agg.lab, tensi: agg.tensi, purin: agg.purin, avg: agg.avg, patients: agg.patients },
       labs: desc(d.labs || [], 12).map(({ d: dt, v }) => ({ d: dt, v, status: labStatus(v, d.user.jk) })),
       complaints: desc(d.complaints || [], 15).map(({ d: dt, t: tm, gejala, lain }) => ({ d: dt, t: tm, gejala, lain })),
@@ -223,7 +223,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   /* ---------- Ekspor & backup ---------- */
   const EXPORTS = {
     pasien: ["Pasien", (docs) => [["Nama", "Email", "JK", "BB (kg)", "TB (cm)", "Batas purin (mg)", "Terdaftar", "Status akun", "Login terakhir", "Jumlah catatan", "Asam urat terakhir (mg/dL)", "Tanggal cek", "Status asam urat"],
-      ...patientsOf(docs).map(userSummary).map((u) => [u.nama, u.email, u.jk, u.bb, u.tb, u.lim, (u.createdAt || "").slice(0, 10), u.disabled ? "Nonaktif" : "Aktif", (u.lastLoginAt || "").slice(0, 10), u.records, u.lastLab?.v ?? "", u.lastLab?.d ?? "", u.lastLab?.status ?? ""])]],
+      ...patientsOf(docs).map((x) => userSummary(x)).map((u) => [u.nama, u.email, u.jk, u.bb, u.tb, u.lim, (u.createdAt || "").slice(0, 10), u.disabled ? "Nonaktif" : "Aktif", (u.lastLoginAt || "").slice(0, 10), u.records, u.lastLab?.v ?? "", u.lastLab?.d ?? "", u.lastLab?.status ?? ""])]],
     "asam-urat": ["Asam urat", (docs) => [["Nama", "Email", "Tanggal", "Kadar (mg/dL)", "Status"], ...patientsOf(docs).flatMap((d) => (d.labs || []).map((l) => [d.user.nama, d.user.email, l.d, l.v, labStatus(l.v, d.user.jk)]))]],
     makanan: ["Catatan makan", (docs) => [["Nama", "Email", "Tanggal", "Waktu", "Makanan", "Porsi (g/ml)", "Purin (mg)"], ...patientsOf(docs).flatMap((d) => (d.meals || []).map((m) => [d.user.nama, d.user.email, m.d, m.w, m.n, m.g, m.p]))]],
     tensi: ["Tensi", (docs) => [["Nama", "Email", "Tanggal", "Tensi", "Catatan"], ...patientsOf(docs).flatMap((d) => (d.vitals || []).map((v) => [d.user.nama, d.user.email, v.d, tdText(v.td), v.k]))]],
@@ -234,7 +234,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
     const type = q.get("type"), fmt = q.get("format") === "xlsx" ? "xlsx" : "csv";
     let name, rows;
     if (type === "database-makanan") { name = "Database makanan"; rows = [["Nama", "Purin (mg/100 g)", "Kategori"], ...(await getFoods(storage)).map((f) => [f.name, f.purin, f.cat])]; }
-    else if (EXPORTS[type]) { name = EXPORTS[type][0]; rows = EXPORTS[type][1](await storage.allDocs(), today()); }
+    else if (EXPORTS[type]) { name = EXPORTS[type][0]; { const t = today(); rows = EXPORTS[type][1]((await storage.allDocs()).map((x) => capDoc(x, t)), t); } }
     else return fail(400, "Jenis laporan tidak dikenal.");
     const file = `gout-care-${type}-${today()}.${fmt}`;
     const body = fmt === "xlsx" ? toXlsx(rows, name) : toCsv(rows);

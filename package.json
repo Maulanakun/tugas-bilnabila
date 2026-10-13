@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/smoke.mjs && node test/reminders.mjs && node test/admin.mjs && node test/admin2.mjs",
+    "test": "node test/smoke.mjs && node test/reminders.mjs && node test/admin.mjs && node test/admin2.mjs && node test/future.mjs",
     "netlify:dev": "netlify dev"
   },
   "engines": {

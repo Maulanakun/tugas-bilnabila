@@ -10,7 +10,7 @@ const labStatus = (v, jk) => {
 };
 const urgent = (g) => g.includes("Demam") || g.length >= 3;
 
-export function buildPatientDays(docs, { q = "", date = "", limit = 500 } = {}) {
+export function buildPatientDays(docs, { q = "", date = "", limit = 500, today = "" } = {}) {
   const needle = String(q).trim().toLowerCase();
   const rows = [];
   let patients = 0;
@@ -23,7 +23,7 @@ export function buildPatientDays(docs, { q = "", date = "", limit = 500 } = {}) 
 
     const days = new Set();
     for (const t of ["meals", "labs", "vitals", "complaints"])
-      for (const r of doc[t] || []) if (isDateStr(r.d) && (!date || r.d === date)) days.add(r.d);
+      for (const r of doc[t] || []) if (isDateStr(r.d) && (!today || r.d <= today) && (!date || r.d === date)) days.add(r.d); // hari yang belum datang tidak ditampilkan
 
     for (const d of days) {
       const meals = (doc.meals || []).filter((m) => m.d === d);

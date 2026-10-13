@@ -107,7 +107,7 @@ ${Adm.pm==="list"?`<label class="lb" for="uq">Cari (nama atau email)</label><inp
 <div class="r"><div><label class="lb" for="us">Filter</label><select id="us" onchange="Act.admUs(this.value)">${[["all","Semua"],["active","Akun aktif"],["disabled","Akun nonaktif"],["high","Asam urat tinggi"]].map(o=>`<option value="${o[0]}" ${Adm.us===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select></div>
 <div><label class="lb" for="uo">Urutkan</label><select id="uo" onchange="Act.admUo(this.value)">${[["recent","Aktivitas terbaru"],["name","Nama"],["lab","Asam urat tertinggi"]].map(o=>`<option value="${o[0]}" ${Adm.uo===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select></div></div>`
 :`<p class="mu">Data harian tiap pasien: total purin dibanding batas, asam urat, tensi, dan keluhan.</p><label class="lb" for="aq">Cari pasien</label><input id="aq" type="search" placeholder="Nama atau email…" value="${E(Dly.q)}" oninput="Act.admSearch(this.value)" autocomplete="off">
-<div class="r" style="align-items:end"><div><label class="lb" for="ad">Tanggal</label><input id="ad" type="date" value="${E(Dly.d)}" onchange="Act.admDate(this.value)"></div><div class="g" style="margin-bottom:5px"><button onclick="Act.admDate('${U.today()}')">Hari ini</button><button onclick="Act.admDate('')">Semua tanggal</button></div></div>`}</div>
+<div class="r" style="align-items:end"><div><label class="lb" for="ad">Tanggal</label><input id="ad" type="date" max="${U.today()}" value="${E(Dly.d)}" onchange="Act.admDate(this.value)"></div><div class="g" style="margin-bottom:5px"><button onclick="Act.admDate('${U.today()}')">Hari ini</button><button onclick="Act.admDate('')">Semua tanggal</button></div></div>`}</div>
 <div id="${Adm.pm==="list"?"admul":"admdl"}"></div>`};
 Act.admPm=m=>{Adm.pm=m;Adm.show()};
 
@@ -175,7 +175,7 @@ async function dlyLoad(){
   Dly.loading=false;dlyPaint()}
 function dlyPaint(){const el=U.$("admdl");if(el)el.innerHTML=dlyTable()}
 Act.admSearch=v=>{Dly.q=v;clearTimeout(Dly.t);Dly.t=setTimeout(dlyLoad,250)};
-Act.admDate=v=>{Dly.d=v;const el=U.$("ad");if(el)el.value=v;dlyLoad()};
+Act.admDate=v=>{if(v>U.today())v=U.today();Dly.d=v;const el=U.$("ad");if(el)el.value=v;dlyLoad()};
 Act.admToggle=n=>{const el=U.$("adm"+n);if(el)el.hidden=!el.hidden};
 
 /* ================= 3. Statistik agregat ================= */

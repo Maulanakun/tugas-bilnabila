@@ -21,7 +21,20 @@ export const parseTd = (s) => {
 };
 const TABLES4 = ["labs", "meals", "vitals", "complaints"];
 export const patientsOf = (docs) => docs.filter((d) => d.user.role !== "admin");
-const dateOf = (iso) => (typeof iso === "string" ? iso.slice(0, 10) : "");
+/* Tanggal (YYYY-MM-DD) dari stempel waktu ISO/UTC, dihitung di zona waktu aplikasi (default WIB) supaya cocok
+   dengan "hari ini" milik server. Sebelumnya dipotong dari string UTC, jadi pukul 00:00-07:00 WIB terbaca hari kemarin. */
+const TZ = (typeof process !== "undefined" && process.env && process.env.REMINDER_TZ) || "Asia/Jakarta";
+const tzFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+const dateOf = (iso) => { const t = typeof iso === "string" ? Date.parse(iso) : NaN; return Number.isNaN(t) ? "" : tzFmt.format(t); };
+
+/* Hari yang belum datang tidak boleh tampil di statistik: buang catatan bertanggal setelah `today`
+   (dan yang tanggalnya tidak valid) dari salinan dokumen. Dokumen asli tidak diubah. */
+export function capDoc(doc, today) {
+  if (typeof today !== "string") return doc;
+  const o = { ...doc };
+  for (const t of TABLES4) o[t] = (doc[t] || []).filter((r) => isD(r.d) && r.d <= today);
+  return o;
+}
 
 function lastActivity(doc) {
   let best = dateOf(doc.user.lastLoginAt);
@@ -35,8 +48,8 @@ const dailyPurin = (doc) => {
 };
 
 /* Satu baris untuk daftar pengguna */
-export function userSummary(doc) {
-  const u = doc.user, labs = (doc.labs || []).filter((x) => isD(x.d)).sort((a, b) => (a.d < b.d ? -1 : 1));
+export function userSummary(rawDoc, today) {
+  const doc = capDoc(rawDoc, today), u = doc.user, labs = (doc.labs || []).filter((x) => isD(x.d)).sort((a, b) => (a.d < b.d ? -1 : 1));
   const last = labs.at(-1);
   return {
     id: u.id, nama: u.nama, email: u.email, jk: u.jk, bb: u.bb ?? null, tb: u.tb ?? null, lim: u.lim,
@@ -48,9 +61,9 @@ export function userSummary(doc) {
   };
 }
 
-export function buildUserList(docs, { q = "", status = "all", sort = "recent" } = {}) {
+export function buildUserList(docs, { q = "", status = "all", sort = "recent", today } = {}) {
   const needle = String(q).trim().toLowerCase();
-  let rows = patientsOf(docs).map(userSummary);
+  let rows = patientsOf(docs).map((d) => userSummary(d, today));
   if (needle) rows = rows.filter((r) => `${r.nama} ${r.email}`.toLowerCase().includes(needle));
   if (status === "active") rows = rows.filter((r) => !r.disabled);
   if (status === "disabled") rows = rows.filter((r) => r.disabled);
@@ -66,7 +79,7 @@ export function buildUserList(docs, { q = "", status = "all", sort = "recent" } 
 
 /* Agregat seluruh pasien: dipakai halaman Statistik, dan sebagai pembanding di detail pasien */
 export function buildAggregate(docs, today, { days = 30, months = 12 } = {}) {
-  const pts = patientsOf(docs), dd = lastDays(today, days), mm = lastMonths(today, months);
+  const pts = patientsOf(docs).map((d) => capDoc(d, today)), dd = lastDays(today, days), mm = lastMonths(today, months);
 
   const labM = new Map(), tdM = new Map();
   for (const d of pts) {
@@ -128,8 +141,8 @@ export function buildAggregate(docs, today, { days = 30, months = 12 } = {}) {
 }
 
 /* Grafik satu pasien: rata-rata asam urat & tensi per bulan, total purin per hari */
-export function buildPatientSeries(doc, today, { days = 30, months = 12 } = {}) {
-  const dd = lastDays(today, days), mm = lastMonths(today, months), u = doc.user;
+export function buildPatientSeries(rawDoc, today, { days = 30, months = 12 } = {}) {
+  const doc = capDoc(rawDoc, today), dd = lastDays(today, days), mm = lastMonths(today, months), u = doc.user;
   const lab = mm.map((m) => { const a = (doc.labs || []).filter((x) => isD(x.d) && x.d.startsWith(m)).map((x) => x.v); return { m, v: a.length ? r1(mean(a)) : null, n: a.length }; });
   const tensi = mm.map((m) => {
     const a = (doc.vitals || []).filter((x) => isD(x.d) && x.d.startsWith(m)).map((x) => parseTd(x.td)).filter(Boolean);
@@ -150,7 +163,7 @@ export function buildPatientSeries(doc, today, { days = 30, months = 12 } = {}) 
 
 /* Dashboard: angka ringkas, tren 14 hari, dan bahan notifikasi dari data pasien */
 export function buildOverview(docs, today) {
-  const pts = patientsOf(docs), week = lastDays(today, 7), trendDays = lastDays(today, 14);
+  const pts = patientsOf(docs).map((d) => capDoc(d, today)), week = lastDays(today, 7), trendDays = lastDays(today, 14);
   const weekSet = new Set(week);
   let recordsToday = 0, newToday = 0, active = 0, disabled = 0;
   const perDay = new Map(trendDays.map((d) => [d, { records: 0, pts: new Set() }]));
