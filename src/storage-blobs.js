@@ -41,10 +41,19 @@ export async function createBlobStorage(name = "gout-care") {
       for (const b of blobs) { const d = await store.get(b.key, { type: "json" }); if (d) { TABLES.forEach((t) => { if (!Array.isArray(d[t])) d[t] = []; }); out.push(d); } }
       return out;
     },
+    /* Data global: satu blob per kunci (meta/<kunci>) */
+    async getMeta(key) { return (await store.get("meta/" + key, { type: "json" })) ?? null; },
+    async setMeta(key, val) { await store.setJSON("meta/" + key, val); },
+    async appendLog(key, entry, max = 300) {
+      const l = (await store.get("meta/" + key, { type: "json" })) || [];
+      l.push(entry); await store.setJSON("meta/" + key, l.slice(-max));
+    },
     /* Gabungkan semua dokumen user menjadi skema satu-file (sama dengan db.json lokal) */
     async exportAll() {
-      const out = { app: "gout-care", version: 2, users: [] };
+      const out = { app: "gout-care", version: 2, users: [], meta: {} };
       TABLES.forEach((t) => (out[t] = []));
+      const mk = await store.list({ prefix: "meta/" });
+      for (const b of mk.blobs) out.meta[b.key.slice(5)] = await store.get(b.key, { type: "json" });
       const { blobs } = await store.list({ prefix: "users/" });
       for (const b of blobs) {
         const d = await store.get(b.key, { type: "json" });

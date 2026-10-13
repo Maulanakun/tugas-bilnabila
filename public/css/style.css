@@ -250,3 +250,20 @@ details ul{padding-left:20px;margin:6px 0}
 .adm th{text-align:left;white-space:nowrap}
 .adm td ul{padding-left:20px}
 .adm tr[tabindex]:focus-visible{outline:2px solid var(--pr);outline-offset:-2px}
+
+/* ---------- Panel admin: tab, kartu angka, notifikasi, legenda grafik ---------- */
+.atabs{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;max-width:1080px;margin:0 auto}
+.nt button{border:1.5px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer}
+.g button.b{background:var(--pr);color:var(--on-pr);border:0;border-radius:var(--r-s);padding:12px 20px;font-weight:700}.g button.b:hover{background:var(--pr-d)}
+.atabs button{white-space:nowrap;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.atabs button.on{background:var(--pr);color:var(--on-pr);border-color:var(--pr)}
+.astats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.as{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.as .k{font-size:13px;color:var(--mu);font-weight:700}.as .v{font-size:30px;font-weight:800;line-height:1.2}.as .s{font-size:12.5px;color:var(--mu)}
+.nt{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;margin:8px 0;border-radius:var(--r-s);border:1px solid var(--bd);border-left:5px solid var(--mu);font-size:14.5px}
+.nt.bad{border-left-color:var(--bad);background:var(--bad-t,transparent)}.nt.wa{border-left-color:var(--wa);background:var(--wa-t,transparent)}
+.lg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--mu);margin-top:4px}.lg i{display:inline-block;width:22px;margin-right:6px;vertical-align:middle}
+.adm h3{margin:16px 0 4px;font-size:15px}
+.adm textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r-s);background:var(--card);color:var(--tx);resize:vertical}
+.adm code{background:var(--soft);padding:1px 6px;border-radius:6px}
+@media print{.atabs{display:none}.adm{padding:0}}

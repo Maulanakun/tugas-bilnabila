@@ -14,7 +14,7 @@ import {
 import { applyOps, publicUser, blankDoc, TABLES } from "./ops.js";
 import { sendMail, mailConfigured } from "./mailer.js";
 import { buildEmail } from "./reminders.js";
-import { buildPatientDays, isDateStr } from "./admin.js";
+import { createAdminRoutes, getFoods, getContent, getSettings } from "./admin-routes.js";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const optNum = (v, lo, hi) => {
@@ -25,8 +25,14 @@ const optNum = (v, lo, hi) => {
 
 export function createHandler({ storage, env }) {
   const secret = () => String(env.JWT_SECRET || "");
-  /* Kata sandi yang mengandung kunci ini menjadikan akun admin (bisa diganti lewat env ADMIN_KEY) */
-  const adminKey = () => "ADMINGOUTCARE";
+  /* Kata sandi yang mengandung kunci ini menjadikan akun admin. Kunci bawaan ("ADMINGOUTCARE") hanya
+     berlaku di lokal; di produksi/Netlify WAJIB mengisi ADMIN_KEY, kalau tidak promosi lewat sandi mati. */
+  const isProd = () => env.NODE_ENV === "production" || !!env.NETLIFY || !!env.AWS_LAMBDA_FUNCTION_NAME;
+  const adminKeyExplicit = !!String(env.ADMIN_KEY || "").trim();
+  const adminKey = () => (adminKeyExplicit ? String(env.ADMIN_KEY) : isProd() ? null : "ADMINGOUTCARE");
+  const promotes = (pw) => { const k = adminKey(); return !!k && pw.includes(k); };
+  const adminRoutes = createAdminRoutes({ storage, env, J: (...a) => J(...a), fail: (...a) => fail(...a), adminKeyExplicit });
+  const log = (type, text) => storage.appendLog("activity", { t: new Date().toISOString(), type, text }).catch(() => {});
   const ttl = () =>
     (Number(env.TOKEN_TTL_DAYS) > 0 ? Number(env.TOKEN_TTL_DAYS) : 30) * 86400;
   let dummyHash;
@@ -60,7 +66,7 @@ export function createHandler({ storage, env }) {
     const p = m && verifyToken(m[1], secret());
     if (!p) return null;
     const doc = await storage.getDoc(p.sub);
-    return doc && fingerprint(doc.user.pass) === p.pw ? doc : null;
+    return doc && !doc.user.disabled && fingerprint(doc.user.pass) === p.pw ? doc : null;
   }
   const noAuth = () => fail(401, "Sesi tidak valid. Silakan masuk lagi.");
 
@@ -68,7 +74,6 @@ export function createHandler({ storage, env }) {
     try {
       const path = (req.path || "/").replace(/\/+$/, "") || "/";
       const key = `${req.method} ${path}`;
-      console.log(secret().length);
 
       if (key === "GET /api/health")
         return J(200, { ok: true, storage: storage.kind });
@@ -112,8 +117,9 @@ export function createHandler({ storage, env }) {
 
       /* ---- Daftar ---- */
       if (key === "POST /api/register") {
-        if (String(env.ALLOW_REGISTER ?? "true").toLowerCase() === "false")
-          return fail(403, "Pendaftaran akun baru dinonaktifkan.");
+        const set = await getSettings(storage);
+        const open = typeof set.allowRegister === "boolean" ? set.allowRegister : String(env.ALLOW_REGISTER ?? "true").toLowerCase() !== "false";
+        if (!open) return fail(403, "Pendaftaran akun baru dinonaktifkan.");
         const nama = String(b.nama || "").trim(),
           email = String(b.email || "")
             .trim()
@@ -137,10 +143,11 @@ export function createHandler({ storage, env }) {
           lim: 400,
           createdAt: new Date().toISOString(),
         };
-        if (pw.includes(adminKey())) user.role = "admin";
+        if (promotes(pw)) user.role = "admin";
         if (!(await storage.createUser(user)))
           return fail(409, "Email sudah terdaftar. Silakan masuk.");
         const doc = blankDoc(user);
+        log("daftar", `Akun baru: ${user.email}`);
         return J(201, { token: issue(doc), ...payload(doc) });
       }
 
@@ -154,28 +161,44 @@ export function createHandler({ storage, env }) {
         dummyHash ||= await hashPassword("dummy-password"); // samakan waktu respons jika email tak ada
         const ok = await verifyPassword(pw, doc ? doc.user.pass : dummyHash);
         if (!doc || !ok) return fail(401, "Email atau kata sandi salah.");
-        if (pw.includes(adminKey()) && doc.user.role !== "admin") {
-          doc = await storage.lock(doc.user.id, async () => {
-            const fresh = await storage.getDoc(doc.user.id);
-            fresh.user.role = "admin";
-            await storage.saveDoc(fresh);
-            return fresh;
-          });
-        }
+        if (doc.user.disabled) return fail(403, "Akun dinonaktifkan. Hubungi admin.");
+        doc = await storage.lock(doc.user.id, async () => {
+          const fresh = await storage.getDoc(doc.user.id);
+          if (promotes(pw) && fresh.user.role !== "admin") fresh.user.role = "admin";
+          fresh.user.lastLoginAt = new Date().toISOString();
+          await storage.saveDoc(fresh);
+          return fresh;
+        });
+        log("masuk", `Login: ${doc.user.email}`);
         return J(200, { token: issue(doc), ...payload(doc) });
       }
 
       /* ---- Butuh login ---- */
-      /* ---- Panel admin: daftar pasien per tanggal (hanya akun admin) ---- */
-      if (key === "GET /api/admin/patients") {
+      /* ---- Konfigurasi publik (nama situs) ---- */
+      if (key === "GET /api/config") {
+        const set = await getSettings(storage);
+        return J(200, { siteName: set.siteName });
+      }
+
+      /* ---- Panel admin: semua rute /api/admin/* (kecuali export ber-ADMIN_TOKEN di atas) ---- */
+      if (path.startsWith("/api/admin/")) {
         const doc = await auth(req);
         if (!doc) return noAuth();
         if (doc.user.role !== "admin") return fail(403, "Khusus admin.");
-        const date = String(req.query?.get("date") || "");
-        if (date && !isDateStr(date))
-          return fail(400, "Format tanggal harus YYYY-MM-DD.");
-        const q = String(req.query?.get("q") || "").slice(0, 80);
-        return J(200, buildPatientDays(await storage.allDocs(), { q, date }));
+        const h = adminRoutes[key];
+        if (!h) return fail(404, "Endpoint tidak ditemukan.");
+        return h({ doc, b, q: req.query || new URLSearchParams() });
+      }
+
+      /* ---- Data global untuk user: database makanan & konten ---- */
+      if (key === "GET /api/foods") {
+        if (!(await auth(req))) return noAuth();
+        return J(200, { foods: (await getFoods(storage)).map((f) => [f.name, f.purin, f.cat]) });
+      }
+      if (key === "GET /api/content") {
+        if (!(await auth(req))) return noAuth();
+        const c = await getContent(storage);
+        return J(200, { articles: c.articles, announcements: c.announcements.filter((x) => x.active !== false) });
       }
 
       if (key === "GET /api/me") {
@@ -202,28 +225,14 @@ export function createHandler({ storage, env }) {
       if (key === "POST /api/me/test-email") {
         const doc = await auth(req);
         if (!doc) return noAuth();
-        if (!mailConfigured(env))
-          return fail(
-            503,
-            "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).",
-          );
+        if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).");
         return storage.lock(doc.user.id, async () => {
           const fresh = await storage.getDoc(doc.user.id);
           if (!fresh) return noAuth();
-          if (fresh.user.testAt && Date.now() - fresh.user.testAt < 60000)
-            return fail(
-              429,
-              "Tunggu sebentar sebelum mengirim email percobaan lagi.",
-            );
-          const r = await sendMail(
-            {
-              to: fresh.user.email,
-              ...buildEmail(fresh.user, [], env.APP_URL || env.URL || "", {
-                test: true,
-              }),
-            },
-            env,
-          );
+          if (fresh.user.testAt && Date.now() - fresh.user.testAt < 60000) return fail(429, "Tunggu sebentar sebelum mengirim email percobaan lagi.");
+          const set = await getSettings(storage), mail = buildEmail(fresh.user, [], env.APP_URL || env.URL || "", { test: true, site: set.siteName });
+          const r = await sendMail({ to: fresh.user.email, ...mail }, env);
+          storage.appendLog("maillog", { t: new Date().toISOString(), to: fresh.user.email, subject: mail.subject, kind: "uji-user", ok: !!r.ok, error: r.ok ? "" : String(r.error || "").slice(0, 200) }).catch(() => {});
           if (!r.ok) return fail(502, r.error);
           fresh.user.testAt = Date.now();
           await storage.saveDoc(fresh);
@@ -268,6 +277,7 @@ export function createHandler({ storage, env }) {
       return fail(404, "Endpoint tidak ditemukan.");
     } catch (e) {
       console.error("[api]", e);
+      storage.appendLog("errlog", { t: new Date().toISOString(), where: `${req.method} ${req.path}`, msg: String((e && e.message) || e).slice(0, 300) }).catch(() => {});
       return fail(500, "Terjadi kesalahan di server.");
     }
   };

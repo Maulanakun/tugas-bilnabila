@@ -46,4 +46,6 @@ const Theme={
 Act.theme=()=>{const n=Theme.cur()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("goutcare.theme",n)}catch(e){}Theme.paint()};
 Theme.paint();
 
+Site.wrap();
+Site.init();
 App.init();

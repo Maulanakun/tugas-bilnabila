@@ -27,6 +27,7 @@ Uji lokal dengan emulasi Netlify: `netlify dev`.
 | Variabel | Wajib? | Fungsi |
 |---|---|---|
 | `JWT_SECRET` | **Wajib di Netlify** | Kunci rahasia penanda token login. Min. 16 karakter. Buat: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Jika diganti, semua orang harus login ulang. |
+| `ADMIN_KEY` | **Wajib di produksi** | Kata kunci rahasia: akun yang mendaftar/masuk dengan kata sandi yang *mengandung* teks ini menjadi admin. Di lokal, jika kosong dipakai `ADMINGOUTCARE`; di Netlify/produksi, jika kosong promosi ini **dimatikan** (kata kunci bawaan itu publik). Admin yang sudah ada tetap admin. |
 | `ADMIN_TOKEN` | Opsional | Kata kunci untuk mengunduh seluruh database JSON (lihat bawah). Kosong = fitur mati. |
 | `ALLOW_REGISTER` | Opsional | `false` untuk menutup pendaftaran baru. Default `true`. |
 | `TOKEN_TTL_DAYS` | Opsional | Lama login bertahan (hari). Default `30`. |
@@ -52,6 +53,22 @@ curl -H "Authorization: Bearer ISI_ADMIN_TOKEN" https://NAMA-SITUS.netlify.app/a
 Hasilnya sama bentuknya dengan `data/db.json` lokal (hash sandi disembunyikan; tambahkan `?hashes=1` untuk menyertakan).
 Pengguna biasa juga bisa **Akun > Ekspor data saya (JSON)** di aplikasi.
 
+## Panel admin
+Masuk dengan akun admin, panel terbuka otomatis. Sembilan tab:
+| Tab | Isi |
+|---|---|
+| Dashboard | Total pasien, pasien aktif (7 hari), pasien & catatan baru hari ini, tren 14 hari, notifikasi (keluhan perlu dicek, asam urat tinggi, email gagal, SMTP/ADMIN_KEY belum diatur) |
+| Pasien | Daftar + cari/filter/urut; detail per pasien (nonaktifkan, reset sandi, hapus, grafik **rata-rata pasien vs seluruh pasien**); "Catatan harian" per tanggal |
+| Statistik | Rata-rata asam urat per bulan, purin harian, tensi, distribusi status, makanan teratas, gejala terbanyak (seluruh pasien) |
+| Makanan | Kelola database makanan & kadar purin (ini yang dibaca aplikasi pasien; `public/js/data.js` hanya cadangan) |
+| Konten | Pengumuman (muncul di Ringkasan) dan artikel edukasi tambahan |
+| Pengingat | Template email (subjek/pembuka/penutup, kode `{{nama}}` `{{judul}}` `{{jumlah}}`), status SMTP, email terkirim |
+| Laporan | Unduh Excel/CSV (pasien, asam urat, makanan, tensi, keluhan, rekap bulanan, database makanan), cetak rekap ke PDF |
+| Sistem | Nama situs, buka/tutup pendaftaran, status SMTP, backup JSON |
+| Log | Aktivitas (login, aksi admin), email, error server |
+
+Catatan: "rata-rata keseluruhan" = rata-rata semua pengukuran pasien pada periode itu (bukan rata-rata dari rata-rata per pasien); jumlah pasien ditampilkan di samping. Data global (makanan, konten, pengaturan, log) disimpan di `meta` pada `db.json` (lokal) atau blob `meta/*` (Netlify). SMTP tetap hanya dari environment, tidak disimpan di database. Backup hanya mengunduh; belum ada fitur restore.
+
 ## Struktur
 ```
 public/                 situs statis (index.html, css/, js/)
@@ -60,6 +77,11 @@ public/                 situs statis (index.html, css/, js/)
   js/auth.js            daftar/masuk/keluar lewat server
 src/api.js              seluruh rute API (dipakai lokal & Netlify)
 src/ops.js              validasi data & penerapan operasi per user
+src/admin-routes.js     rute /api/admin/* (pengguna, makanan, konten, pengaturan, log, ekspor)
+src/stats.js            statistik & deret grafik (individu dan agregat)
+src/xlsx.js             penulis CSV/XLSX tanpa dependensi
+src/foods-seed.js       data makanan awal (dipindah dari data.js)
+public/js/site.js       nama situs, makanan, pengumuman & artikel dari server
 src/crypto.js           hash sandi (scrypt) + token HMAC
 src/storage-file.js     database ke satu file JSON (lokal)
 src/storage-blobs.js    database ke Netlify Blobs (Netlify)

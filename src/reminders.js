@@ -39,19 +39,24 @@ export function dueKey(r, local) {
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-export function buildEmail(user, titles, appUrl, { test = false } = {}) {
+/* Template admin: {{nama}} {{judul}} (daftar judul, dipisah koma) {{jumlah}}. Kosong = teks bawaan. */
+const fill = (t, v) => String(t).replace(/\{\{(nama|judul|jumlah)\}\}/g, (_, k) => v[k]);
+
+export function buildEmail(user, titles, appUrl, { test = false, tpl = {}, site = "Gout Care" } = {}) {
   const nama = user.nama || "";
+  const v = { nama, judul: titles.join(", "), jumlah: String(titles.length) };
   const subject = test
-    ? "Email percobaan Gout Care"
-    : titles.length === 1 ? `Pengingat: ${titles[0]}` : `Pengingat Gout Care (${titles.length})`;
-  const intro = test ? "Ini email percobaan. Pengingatmu akan dikirim ke alamat ini." : "Waktunya untuk:";
-  const text = [`Halo ${nama},`, "", intro, ...(test ? [] : titles.map((t) => "- " + t)), "", appUrl ? "Buka Gout Care: " + appUrl : "", "", "Matikan pengingat email kapan saja di menu Pengingat."].filter((x, i, a) => x !== "" || a[i - 1] !== "").join("\n");
+    ? `Email percobaan ${site}`
+    : tpl.subject ? fill(tpl.subject, v) : titles.length === 1 ? `Pengingat: ${titles[0]}` : `Pengingat ${site} (${titles.length})`;
+  const intro = test ? "Ini email percobaan. Pengingatmu akan dikirim ke alamat ini." : tpl.intro ? fill(tpl.intro, v) : "Waktunya untuk:";
+  const footer = tpl.footer ? fill(tpl.footer, v) : "Matikan pengingat email kapan saja di menu Pengingat.";
+  const text = [`Halo ${nama},`, "", intro, ...(test ? [] : titles.map((t) => "- " + t)), "", appUrl ? `Buka ${site}: ` + appUrl : "", "", footer].filter((x, i, a) => x !== "" || a[i - 1] !== "").join("\n");
   const html = `<div style="font-family:system-ui,Segoe UI,sans-serif;max-width:480px;margin:auto;padding:24px;color:#14212c">
-<div style="font-size:20px;font-weight:700;margin-bottom:12px">🩺 Gout Care</div>
+<div style="font-size:20px;font-weight:700;margin-bottom:12px">🩺 ${esc(site)}</div>
 <p>Halo ${esc(nama)},</p><p>${esc(intro)}</p>
 ${test ? "" : `<ul style="padding-left:20px;font-size:16px;line-height:1.7">${titles.map((t) => `<li><b>${esc(t)}</b></li>`).join("")}</ul>`}
-${appUrl ? `<p><a href="${esc(appUrl)}" style="display:inline-block;background:#1d6a8a;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700">Buka Gout Care</a></p>` : ""}
-<p style="color:#5b6b78;font-size:13px">Matikan pengingat email kapan saja di menu Pengingat.</p></div>`;
+${appUrl ? `<p><a href="${esc(appUrl)}" style="display:inline-block;background:#1d6a8a;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700">Buka ${esc(site)}</a></p>` : ""}
+<p style="color:#5b6b78;font-size:13px">${esc(footer)}</p></div>`;
   return { subject, text, html };
 }
 
@@ -59,13 +64,15 @@ export async function runReminders({ storage, env, now = new Date(), send = send
   const tz = env.REMINDER_TZ || "Asia/Jakarta", local = localParts(now, tz);
   const appUrl = env.APP_URL || env.URL || "";
   const res = { users: 0, sent: 0, failed: 0 };
+  const st = (await storage.getMeta?.("settings")) || {}, tpl = st.mail || {}, site = st.siteName || "Gout Care";
   for (const doc of await storage.allDocs()) {
     res.users++;
     if (doc.user.remEmail === false || !doc.user.email) continue;
     const due = (doc.reminders || []).map((r) => [r, dueKey(r, local)]).filter((x) => x[1]);
     if (!due.length) continue;
-    const mail = buildEmail(doc.user, due.map(([r]) => r.title), appUrl);
+    const mail = buildEmail(doc.user, due.map(([r]) => r.title), appUrl, { tpl, site });
     const r = await send({ to: doc.user.email, ...mail }, env);
+    try { await storage.appendLog?.("maillog", { t: new Date().toISOString(), to: doc.user.email, subject: mail.subject, kind: "pengingat", ok: !!r.ok, error: r.ok ? "" : String(r.error || "").slice(0, 200) }); } catch { /* log opsional */ }
     if (!r.ok) { res.failed++; console.error("[reminders] gagal kirim:", r.error); continue; }
     await storage.lock(doc.user.id, async () => {
       const fresh = await storage.getDoc(doc.user.id);

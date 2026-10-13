@@ -6,7 +6,7 @@ import { TABLES } from "./ops.js";
 
 export function createFileStorage(file) {
   let db = null, loading = null, w = Promise.resolve(), chain = Promise.resolve();
-  const blank = () => { const d = { app: "gout-care", version: 2, users: [] }; TABLES.forEach((t) => (d[t] = [])); return d; };
+  const blank = () => { const d = { app: "gout-care", version: 2, users: [], meta: {} }; TABLES.forEach((t) => (d[t] = [])); return d; };
 
   async function doWrite() {
     await fs.mkdir(path.dirname(file), { recursive: true });
@@ -28,6 +28,7 @@ export function createFileStorage(file) {
       if (!o || typeof o !== "object" || !Array.isArray(o.users)) throw new Error(`File ${file} bukan data Gout Care.`);
       db = Object.assign(blank(), o);
       TABLES.forEach((t) => { if (!Array.isArray(db[t])) db[t] = []; });
+      if (!db.meta || typeof db.meta !== "object") db.meta = {};
     })();
     await loading;
     return db;
@@ -68,6 +69,14 @@ export function createFileStorage(file) {
       await persist();
     },
     async allDocs() { await ensure(); return db.users.map(docOf); },
+    /* Data global (bukan milik satu user): pengaturan, database makanan, konten, log */
+    async getMeta(key) { await ensure(); return db.meta[key] === undefined ? null : structuredClone(db.meta[key]); },
+    async setMeta(key, val) { await ensure(); db.meta[key] = structuredClone(val); await persist(); },
+    async appendLog(key, entry, max = 300) {
+      await ensure();
+      const l = Array.isArray(db.meta[key]) ? db.meta[key] : [];
+      l.push(entry); db.meta[key] = l.slice(-max); await persist();
+    },
     async exportAll() { await ensure(); return structuredClone(db); },
   };
 }
