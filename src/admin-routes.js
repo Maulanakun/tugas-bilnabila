@@ -185,7 +185,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   R["GET /api/admin/settings"] = async () => {
     const s = await getSettings(storage), docs = patientsOf(await storage.allDocs());
     const rem = { users: docs.length, emailOn: docs.filter((d) => d.user.remEmail !== false).length, byKey: {} };
-    for (const d of docs) for (const r of d.reminders || []) if (r.on) rem.byKey[r.title] = (rem.byKey[r.title] || 0) + 1;
+    for (const d of docs) for (const r of d.reminders || []) if (r.on && r.key !== "air") rem.byKey[r.title] = (rem.byKey[r.title] || 0) + 1;
     const ml = (await storage.getMeta("maillog")) || [], week = ml.filter((m) => Date.now() - Date.parse(m.t) < 7 * 864e5);
     return J(200, {
       settings: s,
@@ -206,7 +206,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   R["POST /api/admin/settings/test-email"] = async ({ doc }) => {
     if (!mailConfigured(env)) return fail(503, "SMTP belum dikonfigurasi (SMTP_HOST, SMTP_USER, SMTP_PASS).");
     const s = await getSettings(storage);
-    const mail = buildEmail(doc.user, ["Contoh pengingat: Catat makanan hari ini", "Contoh pengingat: Minum air putih"], env.APP_URL || env.URL || "", { tpl: s.mail, site: s.siteName });
+    const mail = buildEmail(doc.user, ["Contoh pengingat: Catat makanan hari ini", "Contoh pengingat: Cek asam urat bulanan"], env.APP_URL || env.URL || "", { tpl: s.mail, site: s.siteName });
     const r = await sendMail({ to: doc.user.email, ...mail }, env);
     await storage.appendLog("maillog", { t: new Date().toISOString(), to: doc.user.email, subject: mail.subject, kind: "uji-admin", ok: r.ok, error: r.ok ? "" : r.error });
     return r.ok ? J(200, { ok: true, to: doc.user.email }) : fail(502, r.error);

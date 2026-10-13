@@ -9,7 +9,7 @@ const App={
     M.hidden=true;P.hidden=false;
     U.$("who").textContent=u.nama;
     U.$("hero").innerHTML=Views.hero();
-    U.$("v").innerHTML=(Views[UI.tab]||Views.home)()+'<div class="noprint" style="text-align:center;margin:18px 0"><button class="b" onclick="Act.bye()">Selesai & keluar 👋</button></div>';
+    U.$("v").innerHTML=(Views[UI.tab]||Views.home)()+'<div class="noprint" style="text-align:center;margin:18px 0"><button class="b" onclick="Act.bye()">Selesai dan keluar</button></div>';
     App.renderTabs();
   },
   renderTabs(){
@@ -35,13 +35,13 @@ Act.fzoom=d=>{ZOOM=d==0?1:Math.min(1.5,Math.max(.85,ZOOM+d));document.querySelec
 
 /* Pesan penutup lalu keluar */
 Act.bye=()=>{const u=Auth.current(),m=Store.meals(),t=U.dayTot(m,U.today()),lg=m.some(x=>x.d==U.today());
-const A=lg&&t<=u.lim?["Hebat! Purinmu hari ini terkendali. Langkah kecil yang konsisten membuat sendimu makin nyaman. 💚","Kamu sudah merawat dirimu dengan baik hari ini. Teruskan ya! 🌟"]:lg?["Satu hari yang belum sempurna bukan masalah. Kamu sudah hebat karena mau mencatat, besok kesempatan baru. 🌱","Mencatat jujur itu langkah berani. Pelan-pelan, kamu pasti bisa! 💪"]:["Terima kasih sudah mampir. Mencatat satu menu saja sudah langkah baik untuk besok. 🌿","Kesehatanmu berharga. Sampai jumpa, jangan lupa minum air putih ya! 💧"];
-const o=U.$("bye");o.innerHTML='<div><div style="font-size:44px">🌈</div><h2>Sampai jumpa, '+U.esc(u.nama)+'!</h2><p>'+A[new Date().getDate()%A.length]+'</p><div class="g" style="justify-content:center;margin-top:12px"><button onclick="document.getElementById(\'bye\').style.display=\'none\'">Kembali</button><button class="b" onclick="Act.logout()">Keluar</button></div></div>';o.style.display="flex"};
+const A=lg&&t<=u.lim?["Purinmu hari ini masih terkendali. Pencatatan yang konsisten membantu menjaga kadar asam urat tetap stabil.","Pencatatan hari ini sudah baik. Teruskan kebiasaan ini."]:lg?["Asupan purin hari ini melewati batas. Mencatat dengan jujur tetap langkah yang tepat, dan besok bisa disesuaikan kembali.","Catatan yang jujur membantu pemantauan. Perbaiki pola makan secara bertahap."]:["Terima kasih sudah berkunjung. Mencatat satu menu saja sudah membantu pemantauan kesehatanmu.","Pencatatan rutin membantu memantau perkembanganmu. Sampai jumpa."];
+const o=U.$("bye");o.innerHTML='<div><h2>Sampai jumpa, '+U.esc(u.nama)+'</h2><p>'+A[new Date().getDate()%A.length]+'</p><div class="g" style="justify-content:center;margin-top:12px"><button onclick="document.getElementById(\'bye\').style.display=\'none\'">Kembali</button><button class="b" onclick="Act.logout()">Keluar</button></div></div>';o.style.display="flex"};
 
 /* Tema terang/gelap: ikuti pengaturan perangkat, lalu pilihan pengguna disimpan di browser (opsional) */
 const Theme={
   cur(){const d=document.documentElement.getAttribute("data-theme");return d||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")},
-  paint(){for(const id of ["thm","thm2"]){const b=U.$(id);if(!b)continue;const d=Theme.cur()==="dark";b.textContent=d?"☀️ Terang":"🌙 Gelap";b.setAttribute("aria-label",d?"Ganti ke mode terang":"Ganti ke mode gelap")}}
+  paint(){for(const id of ["thm","thm2"]){const b=U.$(id);if(!b)continue;const d=Theme.cur()==="dark";b.textContent=d?"Mode terang":"Mode gelap";b.setAttribute("aria-label",d?"Ganti ke mode terang":"Ganti ke mode gelap")}}
 };
 Act.theme=()=>{const n=Theme.cur()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("goutcare.theme",n)}catch(e){}Theme.paint()};
 Theme.paint();

@@ -5,7 +5,7 @@
 <script>try{var t=localStorage.getItem("goutcare.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <!-- Huruf (opsional, butuh internet; tanpa ini dipakai huruf bawaan perangkat) -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head><body>
 <div id="toast" role="status"></div>
@@ -21,10 +21,10 @@
 <!-- Aplikasi (setelah login) -->
 <div id="app" hidden>
   <header class="top noprint"><div class="in">
-    <div class="brand"><i aria-hidden="true">🩺</i><span class="sn">Gout Care</span></div>
+    <div class="brand"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/></svg></i><span class="sn">Gout Care</span></div>
     <div class="who"><span>Halo, <b id="who"></b></span></div>
     <div class="tools">
-      <button onclick="Act.go('akun')">👤 Akun</button>
+      <button onclick="Act.go('akun')">Akun</button>
       <button id="thm" onclick="Act.theme()"></button>
       <span class="zoom" role="group" aria-label="Ukuran huruf"><button onclick="Act.fzoom(-0.1)" aria-label="Perkecil huruf">A-</button><button onclick="Act.fzoom(0)" aria-label="Ukuran huruf normal">A</button><button onclick="Act.fzoom(0.1)" aria-label="Perbesar huruf">A+</button></span>
     </div>

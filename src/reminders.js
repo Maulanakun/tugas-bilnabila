@@ -22,13 +22,12 @@ const shiftDay = (d, n) => { const t = new Date(d + "T12:00:00Z"); t.setUTCDate(
 function slotsFor(r, d) {
   const [h, m] = r.time.split(":").map(Number), start = h * 60 + m;
   if (r.key === "cek") return Number(d.slice(8, 10)) === 5 ? [start] : []; // "Setiap tanggal 5"
-  if (r.key === "air") { const out = []; for (let x = start; x <= Math.max(21 * 60, start); x += 120) out.push(x); return out; } // "Tiap 2 jam", sampai 21:00
   return [start]; // "Setiap hari" dan pengingat lain
 }
 
 /* Kunci slot terbaru yang jatuh tempo untuk satu pengingat, atau null */
 export function dueKey(r, local) {
-  if (!r || !r.on || !/^\d{2}:\d{2}$/.test(r.time || "")) return null;
+  if (!r || !r.on || r.key === "air" || !/^\d{2}:\d{2}$/.test(r.time || "")) return null;
   let best = null;
   for (const off of [0, -1]) {
     const d = off ? shiftDay(local.date, -1) : local.date, now = local.min + (off ? 1440 : 0);
@@ -52,7 +51,7 @@ export function buildEmail(user, titles, appUrl, { test = false, tpl = {}, site 
   const footer = tpl.footer ? fill(tpl.footer, v) : "Matikan pengingat email kapan saja di menu Pengingat.";
   const text = [`Halo ${nama},`, "", intro, ...(test ? [] : titles.map((t) => "- " + t)), "", appUrl ? `Buka ${site}: ` + appUrl : "", "", footer].filter((x, i, a) => x !== "" || a[i - 1] !== "").join("\n");
   const html = `<div style="font-family:system-ui,Segoe UI,sans-serif;max-width:480px;margin:auto;padding:24px;color:#14212c">
-<div style="font-size:20px;font-weight:700;margin-bottom:12px">🩺 ${esc(site)}</div>
+<div style="font-size:20px;font-weight:700;margin-bottom:12px">${esc(site)}</div>
 <p>Halo ${esc(nama)},</p><p>${esc(intro)}</p>
 ${test ? "" : `<ul style="padding-left:20px;font-size:16px;line-height:1.7">${titles.map((t) => `<li><b>${esc(t)}</b></li>`).join("")}</ul>`}
 ${appUrl ? `<p><a href="${esc(appUrl)}" style="display:inline-block;background:#1d6a8a;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:700">Buka ${esc(site)}</a></p>` : ""}

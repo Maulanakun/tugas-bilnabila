@@ -97,11 +97,12 @@ try {
 
   r = await run(`Auth.register({nama:"Ani",email:"ani@mail.com",password:"abcdef",confirm:"abcdef",jk:"P",bb:"55",tb:"160"})`);
   same(r, { ok: true }); ok("klien: Auth.register");
-  assert.equal(run("DB.table('reminders').length"), 3); ok("klien: 3 pengingat bawaan dibuat");
+  assert.equal(run("DB.table('reminders').length"), 2); ok("klien: 2 pengingat bawaan dibuat (tanpa pengingat air putih)");
+  assert.equal(run("DB.table('reminders').some(r => r.key === 'air')"), false); ok("klien: tidak ada pengingat air putih");
   run(`DB.insert("labs",{userId:Auth.current().id,d:"2026-10-02",v:5.9}); DB.insert("moods",{userId:Auth.current().id,d:"2026-10-02",mood:null,gejala:[]}); Auth.patch({lim:150,bb:60})`);
   assert.equal(await run("DB.flushNow()"), true);
   const mine = (await call("POST", "/api/login", { email: "ani@mail.com", password: "abcdef" })).j;
-  assert.equal(mine.data.labs.length, 1); assert.equal(mine.data.reminders.length, 3); assert.equal(mine.data.moods.length, 1); assert.equal(mine.user.lim, 150); assert.equal(mine.user.bb, 60); ok("klien: perubahan sampai ke server");
+  assert.equal(mine.data.labs.length, 1); assert.equal(mine.data.reminders.length, 2); assert.equal(mine.data.moods.length, 1); assert.equal(mine.user.lim, 150); assert.equal(mine.user.bb, 60); ok("klien: perubahan sampai ke server");
   const exp = run("DB.exportJSON()"); assert.ok(!exp.includes("pass")); ok("klien: ekspor JSON tanpa hash sandi");
   await run("Auth.logout()"); assert.equal(run("Auth.current()"), null); assert.equal(store["goutcare.token"], undefined); ok("klien: logout membersihkan token & data");
   r = await run(`Auth.login("ani@mail.com","abcdef")`); same(r, { ok: true }); assert.equal(run("DB.table('labs').length"), 1); ok("klien: login memuat data dari server");

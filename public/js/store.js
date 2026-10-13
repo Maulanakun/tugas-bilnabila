@@ -15,7 +15,7 @@ const Store=(()=>{
     addMeal:m=>DB.insert("meals",Object.assign({userId:uid()},m)),
     vitals:()=>mine("vitals").sort(byDate),
     addVit:(d,td,k)=>DB.insert("vitals",{userId:uid(),d,td,k}),
-    reminders:()=>mine("reminders"),
+    reminders:()=>mine("reminders").filter(r=>r.key!=="air"), /* pengingat air putih sudah dihapus */
     mood:d=>mine("moods").find(m=>m.d===d)||{mood:null,gejala:[]},
     setMood(d,patch){const r=mine("moods").find(m=>m.d===d);r?DB.update("moods",r.id,patch):DB.insert("moods",Object.assign({userId:uid(),d,mood:null,gejala:[]},patch))},
     moods:()=>mine("moods"),

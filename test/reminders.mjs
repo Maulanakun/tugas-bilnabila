@@ -22,9 +22,7 @@ assert.equal(dueKey(R("makan", "19:00", { sent: "2026-10-12T19:00" }), L("2026-1
 assert.equal(dueKey(R("makan", "19:00", { sent: "2026-10-11T19:00" }), L("2026-10-12", 19, 3)), "2026-10-12T19:00"); ok("terkirim kemarin, hari ini tetap kirim");
 assert.equal(dueKey(R("cek", "08:00"), L("2026-10-05", 8, 2)), "2026-10-05T08:00"); ok("bulanan: tanggal 5");
 assert.equal(dueKey(R("cek", "08:00"), L("2026-10-06", 8, 2)), null); ok("bulanan: bukan tanggal 5");
-assert.equal(dueKey(R("air", "09:00"), L("2026-10-12", 13, 1)), "2026-10-12T13:00"); ok("tiap 2 jam: 09,11,13,...");
-assert.equal(dueKey(R("air", "09:00"), L("2026-10-12", 12, 0)), null); ok("tiap 2 jam: jam genap di luar pola tidak dikirim");
-assert.equal(dueKey(R("air", "09:00"), L("2026-10-12", 23, 0)), null); ok("tiap 2 jam: berhenti setelah 21:00");
+assert.equal(dueKey(R("air", "09:00"), L("2026-10-12", 9, 0)), null); ok("pengingat air putih (sudah dihapus) tidak pernah dikirim");
 assert.equal(dueKey(R("makan", "23:58"), L("2026-10-13", 0, 3)), "2026-10-12T23:58"); ok("melewati tengah malam");
 const t = localParts(new Date("2026-10-12T12:30:00Z"), "Asia/Jakarta");
 assert.deepEqual(t, { date: "2026-10-12", min: 19 * 60 + 30 }); ok("zona waktu WIB (UTC+7)");

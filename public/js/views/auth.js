@@ -1,6 +1,6 @@
 /* Layar Masuk / Daftar */
 Views.auth=()=>{const reg=UI.authMode==="register";
-return`<div class="ac"><div class="ah"><h1>🩺 Gout Care</h1><p>Pantau asam urat, makanan, dan kesehatanmu setiap hari.</p></div>
+return`<div class="ac"><div class="ah"><h1><span class="mk">${LOGO}</span>Gout Care</h1><p>Pantau asam urat, makanan, dan kesehatanmu setiap hari.</p></div>
 <div class="c"><div class="seg"><button class="${reg?"":"on"}" onclick="Act.authMode('login')">Masuk</button><button class="${reg?"on":""}" onclick="Act.authMode('register')">Daftar</button></div>
 ${reg?`<form onsubmit="Act.doRegister(event)" autocomplete="on">
 <label class="lb" for="rn">Nama</label><input id="rn" name="nama" autocomplete="name" required maxlength="60">

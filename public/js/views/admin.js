@@ -240,8 +240,8 @@ Adm.draw.mail=()=>{const s=Adm.data.set,l=Adm.data.lmail;if(!s||!l)return null;c
 <div class="warn" style="border-left-color:var(--pr);background:var(--soft)" id="mprev"></div>
 <div class="g"><button class="b" onclick="Act.admMailSave()">Simpan template</button><button onclick="Act.admMailTest()">Kirim email percobaan ke saya</button></div></div>
 <div class="c"><h2>Email terkirim terakhir</h2>${mailTable(l.rows.slice(0,25))}</div>`};
-Act.admPrev=()=>{const el=U.$("mprev");if(!el||!U.$("ms"))return;const f=(t,d)=>(t||d).replace(/\{\{nama\}\}/g,"Budi").replace(/\{\{judul\}\}/g,"Catat makanan hari ini, Minum air putih").replace(/\{\{jumlah\}\}/g,"2");
-  el.innerHTML=`<b>Pratinjau</b><br>Subjek: ${E(f(U.$("ms").value,"Pengingat Gout Care (2)"))}<br>${E(f(U.$("mi").value,"Waktunya untuk:"))}<br>• Catat makanan hari ini · • Minum air putih<br><span class="mu">${E(f(U.$("mf").value,"Matikan pengingat email kapan saja di menu Pengingat."))}</span>`};
+Act.admPrev=()=>{const el=U.$("mprev");if(!el||!U.$("ms"))return;const f=(t,d)=>(t||d).replace(/\{\{nama\}\}/g,"Budi").replace(/\{\{judul\}\}/g,"Catat makanan hari ini, Cek asam urat bulanan").replace(/\{\{jumlah\}\}/g,"2");
+  el.innerHTML=`<b>Pratinjau</b><br>Subjek: ${E(f(U.$("ms").value,"Pengingat Gout Care (2)"))}<br>${E(f(U.$("mi").value,"Waktunya untuk:"))}<br>• Catat makanan hari ini · • Cek asam urat bulanan<br><span class="mu">${E(f(U.$("mf").value,"Matikan pengingat email kapan saja di menu Pengingat."))}</span>`};
 Act.admMailSave=async()=>{const s=Adm.data.set.settings;try{const r=await adm("POST","/admin/settings/save",{...s,mail:{subject:U.$("ms").value,intro:U.$("mi").value,footer:U.$("mf").value}});Adm.data.set.settings=r.settings;U.toast("Template tersimpan ✔")}catch(e){}};
 Act.admMailTest=async()=>{try{await Act.admMailSave();const r=await adm("POST","/admin/settings/test-email",{});U.toast("Email percobaan dikirim ke "+E(r.to)+" ✔");Adm.get("lmail","/admin/logs?kind=mail")}catch(e){}};
 

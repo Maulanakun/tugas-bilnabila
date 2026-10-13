@@ -41,7 +41,7 @@ Lokal tanpa `JWT_SECRET`: kunci dev dibuat otomatis di `data/.jwt-secret`.
 Pengingat yang aktif di menu **Pengingat** dikirim ke email akun user pada jam yang diatur (waktu `REMINDER_TZ`, default WIB).
 - **Pengirim email**: SMTP lewat nodemailer. Isi `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (Gmail: pakai *App Password*). Jalankan `npm install` setelah pembaruan ini. Tanpa isian ini email tidak terkirim (tombol "Kirim email percobaan" akan memberi tahu).
 - **Jadwal**: lokal, server memeriksa tiap menit. Di Netlify, `netlify/functions/reminders.mjs` berjalan otomatis tiap 5 menit (hanya pada deploy produksi). Email bisa terlambat sampai ±5-10 menit di Netlify.
-- Aturan: *Cek asam urat bulanan* tiap tanggal 5; *Catat makanan* tiap hari; *Minum air putih* tiap 2 jam dari jam yang diatur sampai pukul 21:00. Beberapa pengingat pada jam sama digabung jadi satu email, dan tidak dikirim dobel.
+- Aturan: *Cek asam urat bulanan* tiap tanggal 5; *Catat makanan* tiap hari. Beberapa pengingat pada jam sama digabung jadi satu email, dan tidak dikirim dobel.
 - User bisa mematikan email dengan saklar "Kirim pengingat ke email".
 - Uji lokal tanpa SMTP: isi `MAIL_MODE=log`, isi email muncul di konsol server.
 
@@ -98,7 +98,7 @@ meals      {id, userId, d, w, n, g, p}
 vitals     {id, userId, d, td, k}
 reminders  {id, userId, key, title, freq, time, on}
 moods      {id, userId, d, mood, gejala[]}
-complaints {id, userId, d, t(HH:MM), gejala[], lain}   <- keluhan dari modal emoji 😣
+complaints {id, userId, d, t(HH:MM), gejala[], lain}   <- keluhan dari modal "Ada keluhan"
 ```
 Di Netlify Blobs, bentuknya satu dokumen per user (`users/<id>` berisi user + tabel-tabelnya) plus indeks email.
 

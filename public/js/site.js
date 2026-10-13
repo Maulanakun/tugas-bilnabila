@@ -13,7 +13,7 @@ const Site={
     return true;
   },
   txt:s=>U.esc(s).replace(/\n/g,"<br>"),
-  newsHTML:()=>Site.news.map(n=>`<div class="c" style="border-left:5px solid var(--pr)"><h3 style="margin:0 0 4px">📢 ${U.esc(n.title)}</h3><p style="margin:0">${Site.txt(n.body)}</p></div>`).join(""),
+  newsHTML:()=>Site.news.map(n=>`<div class="c" style="border-left:5px solid var(--pr)"><h3 style="margin:0 0 4px">${U.esc(n.title)}</h3><p style="margin:0">${Site.txt(n.body)}</p></div>`).join(""),
   articlesHTML:()=>Site.articles.length?`<div class="c"><h2>Artikel tambahan</h2>${Site.articles.map(a=>`<details><summary>${U.esc(a.title)}</summary><p>${Site.txt(a.body)}</p>${a.src?`<p class="src">Sumber: ${U.esc(a.src)}</p>`:""}</details>`).join("")}</div>`:"",
   /* Pasang pengait tanpa mengubah file tampilan lain */
   wrap(){

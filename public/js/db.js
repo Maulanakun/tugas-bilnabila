@@ -16,7 +16,10 @@ const DB=(()=>{
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,9);
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-  function load(res){user=res.user;data=blank();TABLES.forEach(t=>{if(Array.isArray(res.data[t]))data[t]=res.data[t]})}
+  function load(res){user=res.user;data=blank();TABLES.forEach(t=>{if(Array.isArray(res.data[t]))data[t]=res.data[t]});
+    /* pengingat air putih sudah dihapus: bersihkan baris lama milik akun ini (juga di server) */
+    const old=data.reminders.filter(r=>r.key==="air");
+    if(old.length){data.reminders=data.reminders.filter(r=>r.key!=="air");old.forEach(r=>push({op:"remove",t:"reminders",id:r.id}))}}
   function clear(){user=null;data=blank();queue=[];clearTimeout(timer);busy=false;retry=0;failed=false}
   const schedule=ms=>{clearTimeout(timer);timer=setTimeout(flush,ms)};
   const push=op=>{queue.push(op);schedule(250)};
@@ -27,12 +30,12 @@ const DB=(()=>{
     try{
       const r=await Api.req("POST","/me/ops",{ops:batch});
       queue.splice(0,batch.length);retry=0;
-      if(r.rejected&&r.rejected.length)U.toast("⚠️ "+r.rejected.length+" perubahan ditolak server ("+r.rejected[0].error+").",7000);
-      else if(failed){failed=false;U.toast("Tersambung lagi, data sudah tersimpan ✔")}
+      if(r.rejected&&r.rejected.length)U.toast(""+r.rejected.length+" perubahan ditolak server ("+r.rejected[0].error+").",7000);
+      else if(failed){failed=false;U.toast("Tersambung lagi, data sudah tersimpan")}
     }catch(e){
       if(e.status===401){busy=false;if(lostFn)lostFn();return}
-      if(e.status&&e.status<500){queue.splice(0,batch.length);U.toast("⚠️ Server menolak data: "+e.message,7000)}
-      else{retry++;failed=true;busy=false;U.toast("⚠️ Belum tersimpan ke server, mencoba lagi…",3000);schedule(Math.min(30000,2000*retry));return}
+      if(e.status&&e.status<500){queue.splice(0,batch.length);U.toast("Server menolak data: "+e.message,7000)}
+      else{retry++;failed=true;busy=false;U.toast("Belum tersimpan ke server, mencoba lagi…",3000);schedule(Math.min(30000,2000*retry));return}
     }
     busy=false;if(queue.length)schedule(0);
   }
@@ -52,7 +55,7 @@ const DB=(()=>{
     let n=0;
     TABLES.forEach(t=>(Array.isArray(p[t])?p[t]:[]).forEach(r=>{
       if(!r||typeof r.id!=="string"||data[t].some(x=>x.id===r.id))return;
-      if(t==="reminders"&&data[t].some(x=>x.key===r.key))return;
+      if(t==="reminders"&&(r.key==="air"||data[t].some(x=>x.key===r.key)))return;
       if(t==="moods"&&data[t].some(x=>x.d===r.d))return;
       const row=Object.assign({},r,{userId:user.id});
       data[t].push(row);push({op:"insert",t,row});n++;

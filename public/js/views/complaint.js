@@ -1,10 +1,10 @@
-/* Modal keluhan: muncul saat emoji "Ada keluhan" ditekan atau tombol "Catat keluhan".
+/* Modal keluhan: muncul saat pilihan "Ada keluhan" ditekan atau tombol "Catat keluhan".
    Keluhan yang disimpan masuk ke tabel complaints, lalu tampil di Rapor dan Riwayat. */
-const WARN_TXT="⚠️ Gejala ini perlu diperiksa. Segera hubungi tenaga kesehatan.";
+const WARN_TXT="Gejala ini perlu diperiksa. Segera hubungi tenaga kesehatan.";
 
 Act.openComplaint=()=>{
   const o=U.$("modal");
-  o.innerHTML=`<div class="mo"><h2 id="mt">😣 Ada keluhan?</h2><p class="mu">Pilih yang kamu rasakan hari ini. Bisa lebih dari satu.</p>
+  o.innerHTML=`<div class="mo"><h2 id="mt">Ada keluhan?</h2><p class="mu">Pilih yang kamu rasakan hari ini. Bisa lebih dari satu.</p>
 <div class="g" id="gj">${GEJALA.map(x=>`<button type="button" aria-pressed="false" data-g="${U.esc(x)}" onclick="Act.togGejala(this)">${U.esc(x)}</button>`).join("")}</div>
 <div id="gw" class="warn" role="alert" hidden>${WARN_TXT}</div>
 <label class="lb" for="gl">Keluhan lain yang dirasakan (opsional)</label>
@@ -26,7 +26,7 @@ Act.submitComplaint=()=>{
   Store.addComplaint(U.today(),U.hm(),g,lain);
   if(Store.mood(U.today()).mood!==2)Store.setMood(U.today(),{mood:2});
   Act.closeComplaint();
-  U.toast("Keluhan tersimpan ✔ Tampil di Rapor dan Riwayat."+(U.urgent(g)?"<br><b>"+WARN_TXT+"</b>":""),U.urgent(g)?8000:4000);
+  U.toast("Keluhan tersimpan. Tampil di Rapor dan Riwayat."+(U.urgent(g)?"<br><b>"+WARN_TXT+"</b>":""),U.urgent(g)?8000:4000);
   App.render();
 };
 

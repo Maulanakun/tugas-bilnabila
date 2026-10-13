@@ -40,7 +40,7 @@ const Auth=(()=>{
   }
   async function logout(){
     const ok=await DB.flushNow();
-    if(!ok)U.toast("⚠️ Beberapa data terakhir belum sempat tersimpan ke server.",6000);
+    if(!ok)U.toast("Beberapa data terakhir belum sempat tersimpan ke server.",6000);
     Api.setToken(null);DB.clear();
   }
   async function changePassword(oldPw,newPw,confirm){

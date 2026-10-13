@@ -15,8 +15,26 @@ const EDU=[["Apa itu asam urat dan gout?","Asam urat merupakan hasil akhir metab
 /* Pilihan gejala pada modal keluhan */
 const GEJALA=["Nyeri sendi","Bengkak","Kemerahan","Sulit berjalan","Demam"];
 
+/* Ikon garis (SVG) untuk menu, riwayat, dan logo. Memakai warna teks sekitarnya. */
+const ICO={
+home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/>',
+chart:'<path d="M3 21h18"/><path d="M6 21v-8"/><path d="M12 21V4"/><path d="M18 21V10"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+food:'<path d="M7 3v8a2 2 0 0 0 2 2v8"/><path d="M5 3v6"/><path d="M9 3v6"/><path d="M17 3c-2 2-3 5-3 8h3v10"/>',
+drop:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+scale:'<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 9.5a5 5 0 0 1 8 0"/><path d="M12 12l2-2.5"/>',
+bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+pulse:'<path d="M3 12h4l2-5 4 10 2-5h6"/>',
+clip:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M8.5 12h7"/><path d="M8.5 16h5"/>',
+book:'<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/>',
+alert:'<path d="M12 3 2.5 20h19z"/><path d="M12 10v5"/><path d="M12 17.5v.5"/>',
+cup:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M17 9h2a2 2 0 0 1 0 5h-2"/>',
+user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'};
+const ICON=n=>'<svg class="svg" viewBox="0 0 24 24" aria-hidden="true">'+(ICO[n]||"")+'</svg>';
+const LOGO='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/></svg>';
+
 /* Menu bar bawah: [id, label, ikon] */
-const TABS=[["home","Ringkasan","🏠"],["rapor","Rapor Bulanan","📊"],["riwayat","Riwayat","🕘"],["food","Catatan Makan","🍽️"],["lab","Cek Asam Urat","🧪"],["imt","IMT & Berat","⚖️"],["ingat","Pengingat","🔔"],["vit","Tensi & Keluhan","❤️"],["list","Daftar Makanan","📋"],["edu","Edukasi","📚"]];
+const TABS=[["home","Ringkasan",ICON("home")],["rapor","Rapor Bulanan",ICON("chart")],["riwayat","Riwayat",ICON("clock")],["food","Catatan Makan",ICON("food")],["lab","Cek Asam Urat",ICON("drop")],["imt","IMT & Berat",ICON("scale")],["ingat","Pengingat",ICON("bell")],["vit","Tensi & Keluhan",ICON("pulse")],["list","Daftar Makanan",ICON("clip")],["edu","Edukasi",ICON("book")]];
 
 /* Pengingat bawaan untuk akun baru: [key, judul, frekuensi, jam, aktif] */
-const DEF_REM=[["cek","Cek asam urat bulanan","Setiap tanggal 5","08:00",1],["air","Minum air putih","Tiap 2 jam","09:00",1],["makan","Catat makanan hari ini","Setiap hari","19:00",1]];
+const DEF_REM=[["cek","Cek asam urat bulanan","Setiap tanggal 5","08:00",1],["makan","Catat makanan hari ini","Setiap hari","19:00",1]];
