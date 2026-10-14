@@ -31,10 +31,10 @@ alert:'<path d="M12 3 2.5 20h19z"/><path d="M12 10v5"/><path d="M12 17.5v.5"/>',
 cup:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><path d="M17 9h2a2 2 0 0 1 0 5h-2"/>',
 user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'};
 const ICON=n=>'<svg class="svg" viewBox="0 0 24 24" aria-hidden="true">'+(ICO[n]||"")+'</svg>';
-const LOGO='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/></svg>';
+const LOGO='🩺';
 
 /* Menu bar bawah: [id, label, ikon] */
-const TABS=[["home","Ringkasan",ICON("home")],["rapor","Rapor Bulanan",ICON("chart")],["riwayat","Riwayat",ICON("clock")],["food","Catatan Makan",ICON("food")],["lab","Cek Asam Urat",ICON("drop")],["imt","IMT & Berat",ICON("scale")],["ingat","Pengingat",ICON("bell")],["vit","Tensi & Keluhan",ICON("pulse")],["list","Daftar Makanan",ICON("clip")],["edu","Edukasi",ICON("book")]];
+const TABS=[["home","Ringkasan","🩺"],["rapor","Rapor Bulanan","📈"],["riwayat","Riwayat","🗓️"],["food","Catatan Makan","🥗"],["lab","Cek Asam Urat","🩸"],["imt","IMT & Berat","⚖️"],["ingat","Pengingat","💊"],["vit","Tensi & Keluhan","💓"],["list","Daftar Makanan","🍎"],["edu","Edukasi","💡"]];
 
 /* Pengingat bawaan untuk akun baru: [key, judul, frekuensi, jam, aktif] */
 const DEF_REM=[["cek","Cek asam urat bulanan","Setiap tanggal 5","08:00",1],["makan","Catat makanan hari ini","Setiap hari","19:00",1]];

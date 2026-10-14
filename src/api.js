@@ -112,7 +112,7 @@ export function createHandler({ storage, env }) {
           b = null;
         }
         if (!b || typeof b !== "object" || Array.isArray(b))
-          return fail(400, "Isi permintaan harus JSON objek.");
+          return fail(400, "Data yang dikirim tidak sesuai.");
       }
 
       /* ---- Daftar ---- */
@@ -186,7 +186,7 @@ export function createHandler({ storage, env }) {
         if (!doc) return noAuth();
         if (doc.user.role !== "admin") return fail(403, "Khusus admin.");
         const h = adminRoutes[key];
-        if (!h) return fail(404, "Endpoint tidak ditemukan.");
+        if (!h) return fail(404, "Halaman tidak ditemukan.");
         return h({ doc, b, q: req.query || new URLSearchParams() });
       }
 
@@ -211,7 +211,7 @@ export function createHandler({ storage, env }) {
         const doc = await auth(req);
         if (!doc) return noAuth();
         if (!Array.isArray(b.ops) || b.ops.length > 1000)
-          return fail(400, "Format ops tidak valid (maksimal 1000 per kirim).");
+          return fail(400, "Data yang dikirim tidak sesuai.");
         return storage.lock(doc.user.id, async () => {
           const fresh = await storage.getDoc(doc.user.id);
           if (!fresh) return noAuth();
@@ -225,7 +225,7 @@ export function createHandler({ storage, env }) {
       if (key === "POST /api/me/test-email") {
         const doc = await auth(req);
         if (!doc) return noAuth();
-        if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan di server (SMTP_HOST, SMTP_USER, SMTP_PASS belum diisi).");
+        if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan. Hubungi pengelola aplikasi.");
         return storage.lock(doc.user.id, async () => {
           const fresh = await storage.getDoc(doc.user.id);
           if (!fresh) return noAuth();
@@ -274,11 +274,11 @@ export function createHandler({ storage, env }) {
         return J(200, { ok: true });
       }
 
-      return fail(404, "Endpoint tidak ditemukan.");
+      return fail(404, "Halaman tidak ditemukan.");
     } catch (e) {
       console.error("[api]", e);
       storage.appendLog("errlog", { t: new Date().toISOString(), where: `${req.method} ${req.path}`, msg: String((e && e.message) || e).slice(0, 300) }).catch(() => {});
-      return fail(500, "Terjadi kesalahan di server.");
+      return fail(500, "Terjadi gangguan. Silakan coba lagi.");
     }
   };
 }

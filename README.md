@@ -62,7 +62,7 @@ Masuk dengan akun admin, panel terbuka otomatis. Sembilan tab:
 | Statistik | Rata-rata asam urat per bulan, purin harian, tensi, distribusi status, makanan teratas, gejala terbanyak (seluruh pasien) |
 | Makanan | Kelola database makanan & kadar purin (ini yang dibaca aplikasi pasien; `public/js/data.js` hanya cadangan) |
 | Konten | Pengumuman (muncul di Ringkasan) dan artikel edukasi tambahan |
-| Pengingat | Template email (subjek/pembuka/penutup, kode `{{nama}}` `{{judul}}` `{{jumlah}}`), status SMTP, email terkirim |
+| Pengingat | Template email (subjek/pembuka/penutup, kode `[nama]` `[judul]` `[jumlah]`), status SMTP, email terkirim |
 | Laporan | Unduh Excel/CSV (pasien, asam urat, makanan, tensi, keluhan, rekap bulanan, database makanan), cetak rekap ke PDF |
 | Sistem | Nama situs, buka/tutup pendaftaran, status SMTP, backup JSON |
 | Log | Aktivitas (login, aksi admin), email, error server |

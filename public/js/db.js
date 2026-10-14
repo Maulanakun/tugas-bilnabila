@@ -30,12 +30,12 @@ const DB=(()=>{
     try{
       const r=await Api.req("POST","/me/ops",{ops:batch});
       queue.splice(0,batch.length);retry=0;
-      if(r.rejected&&r.rejected.length)U.toast(""+r.rejected.length+" perubahan ditolak server ("+r.rejected[0].error+").",7000);
+      if(r.rejected&&r.rejected.length)U.toast(""+r.rejected.length+" catatan tidak bisa disimpan. Coba muat ulang halaman.",7000);
       else if(failed){failed=false;U.toast("Tersambung lagi, data sudah tersimpan")}
     }catch(e){
       if(e.status===401){busy=false;if(lostFn)lostFn();return}
-      if(e.status&&e.status<500){queue.splice(0,batch.length);U.toast("Server menolak data: "+e.message,7000)}
-      else{retry++;failed=true;busy=false;U.toast("Belum tersimpan ke server, mencoba lagi…",3000);schedule(Math.min(30000,2000*retry));return}
+      if(e.status&&e.status<500){queue.splice(0,batch.length);U.toast("Data tidak bisa disimpan: "+e.message,7000)}
+      else{retry++;failed=true;busy=false;U.toast("Belum tersimpan, mencoba lagi…",3000);schedule(Math.min(30000,2000*retry));return}
     }
     busy=false;if(queue.length)schedule(0);
   }
@@ -50,7 +50,7 @@ const DB=(()=>{
   }
   /* Impor ke akun yang sedang login. Baris dengan id yang sama dilewati. Format lama (users[]) juga dibaca. */
   function importJSON(text){
-    let p;try{p=JSON.parse(text)}catch(e){throw new Error("File bukan JSON yang valid.")}
+    let p;try{p=JSON.parse(text)}catch(e){throw new Error("File ini bukan salinan data yang benar.")}
     if(!p||p.app!=="gout-care")throw new Error("Bukan file cadangan Gout Care.");
     let n=0;
     TABLES.forEach(t=>(Array.isArray(p[t])?p[t]:[]).forEach(r=>{

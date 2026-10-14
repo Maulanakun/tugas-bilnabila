@@ -66,7 +66,7 @@ button{font-family:inherit}
 #tabbar .in{max-width:760px;margin:0 auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding:6px 8px;scroll-behavior:smooth}
 #tabbar .in::-webkit-scrollbar{display:none}
 #tabbar button{flex:1 0 auto;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:var(--mu);font-size:11.5px;white-space:nowrap;padding:7px 8px;border-radius:10px;cursor:pointer;position:relative}
-#tabbar button .ic{display:grid;place-items:center;line-height:1}#tabbar button .ic svg{width:21px;height:21px}
+#tabbar button .ic{display:grid;place-items:center;line-height:1;font-size:20px}#tabbar button .ic svg{width:21px;height:21px}
 #tabbar button.on{color:var(--pr-d);background:var(--pr-t);font-weight:700}
 
 /* ---------- Navigasi: sisi kiri (layar lebar) ---------- */
@@ -77,7 +77,7 @@ button{font-family:inherit}
   #tabbar .in{flex-direction:column;overflow:visible;padding:0;gap:3px;max-width:none}
   #tabbar button{flex-direction:row;align-items:center;gap:12px;min-width:0;width:100%;font-size:15px;padding:11px 14px;border-radius:10px;text-align:left}
   #tabbar button:hover{background:color-mix(in srgb,var(--pr-t) 60%,transparent)}
-  #tabbar button .ic{width:24px}#tabbar button .ic svg{width:19px;height:19px}
+  #tabbar button .ic{width:24px;font-size:19px}#tabbar button .ic svg{width:19px;height:19px}
   #tabbar button.on::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:4px;border-radius:4px;background:var(--pr)}
   .main{grid-column:2;grid-row:1;min-width:0}
   .w{max-width:none;padding-top:18px}
@@ -93,8 +93,7 @@ button{font-family:inherit}
 .ml{font-size:13px;font-weight:700;color:var(--mu);margin:16px 0 8px;letter-spacing:.02em}
 .mood{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .mood button{background:var(--soft);color:var(--tx);border:1.5px solid var(--bd);border-radius:var(--r-s);padding:12px 8px;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s,background .15s}
-.mood button::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--mu);flex:none}
-.mood button.m0::before{background:var(--ok)}.mood button.m1::before{background:var(--wa)}.mood button.m2::before{background:var(--bad)}
+.mood button .me{font-size:22px;line-height:1}
 .mood button:hover{border-color:var(--pr)}
 .mood button.on{background:var(--pr-t);border-color:var(--pr);color:var(--pr-d)}
 .hero .warn{margin-top:12px}
@@ -213,7 +212,7 @@ details ul{padding-left:20px;margin:6px 0}
 .ac{width:100%;max-width:440px}
 .ah{border-radius:var(--r);padding:24px 24px 22px;background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--pr);margin-bottom:14px;box-shadow:var(--sh)}
 .ah h1{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:27px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
-.ah h1 .mk{width:34px;height:34px;border-radius:9px;background:var(--pr);color:var(--on-pr);display:grid;place-items:center;flex:none}
+.ah h1 .mk{width:34px;height:34px;font-size:20px;font-style:normal;border-radius:9px;background:var(--pr);color:var(--on-pr);display:grid;place-items:center;flex:none}
 .ah h1 .mk svg{width:20px;height:20px}
 .ah p{margin:0;color:var(--mu);max-width:38ch}
 .seg{display:flex;gap:4px;background:var(--soft);border:1px solid var(--bd);padding:4px;border-radius:14px;margin-bottom:10px}

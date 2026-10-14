@@ -15,7 +15,7 @@ ${reg?`<form onsubmit="Act.doRegister(event)" autocomplete="on">
 <label class="lb" for="le">Email</label><input id="le" name="email" type="email" autocomplete="email" required>
 <label class="lb" for="lp">Kata sandi</label><input id="lp" name="password" type="password" autocomplete="current-password" required>
 <div class="err" id="aerr" role="alert"></div><button class="b full" type="submit">Masuk</button></form>`}
-<p class="mu" style="margin-top:12px">Data kamu tersimpan aman di server dan bisa dibuka dari perangkat mana pun setelah masuk.</p></div></div>`};
+<p class="mu" style="margin-top:12px">Data kamu tersimpan aman dan bisa dibuka dari perangkat mana pun setelah masuk.</p></div></div>`};
 
 Act.authMode=m=>{UI.authMode=m;App.render()};
 Act.doLogin=async e=>{e.preventDefault();const f=e.target,r=await Auth.login(f.email.value,f.password.value);

@@ -35,7 +35,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
     try { await storage.appendLog("activity", { t: new Date().toISOString(), type, by: admin.user.nama, text }); } catch { /* log tidak boleh menggagalkan aksi */ }
   };
   const target = async (id) => {
-    if (!validId(id)) return { err: fail(400, "ID pengguna tidak valid.") };
+    if (!validId(id)) return { err: fail(400, "Data pengguna tidak ditemukan.") };
     const d = await storage.getDoc(id);
     if (!d) return { err: fail(404, "Pengguna tidak ditemukan.") };
     if (d.user.role === "admin") return { err: fail(403, "Akun admin tidak bisa diubah dari panel ini.") };
@@ -53,9 +53,9 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
     if (o.high.length > 8) notes.push({ level: "wa", text: `Dan ${o.high.length - 8} pasien lain dengan asam urat tinggi.` });
     const ml = (await storage.getMeta("maillog")) || [];
     const fails = ml.filter((m) => !m.ok && Date.now() - Date.parse(m.t) < 864e5).length;
-    if (fails) notes.push({ level: "bad", text: `${fails} email gagal terkirim dalam 24 jam terakhir. Lihat tab Log.` });
-    if (!mailConfigured(env)) notes.push({ level: "wa", text: "SMTP belum dikonfigurasi: email pengingat tidak terkirim." });
-    if (!adminKeyExplicit) notes.push({ level: "wa", text: "ADMIN_KEY belum diatur. Kata kunci bawaan diketahui publik; isi ADMIN_KEY di environment." });
+    if (fails) notes.push({ level: "bad", text: `${fails} email gagal terkirim dalam 24 jam terakhir. Lihat tab Riwayat.` });
+    if (!mailConfigured(env)) notes.push({ level: "wa", text: "Pengiriman email pengingat belum aktif, jadi pasien belum menerima pengingat lewat email. Hubungi pengelola teknis aplikasi." });
+    if (!adminKeyExplicit) notes.push({ level: "wa", text: "Keamanan akun admin belum lengkap. Minta pengelola teknis aplikasi melengkapinya." });
     return J(200, { ...o, notifications: notes, today: t });
   };
 
@@ -66,7 +66,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   };
   R["GET /api/admin/daily"] = async ({ q }) => {
     const date = String(q.get("date") || "");
-    if (date && !isDateStr(date)) return fail(400, "Format tanggal harus YYYY-MM-DD.");
+    if (date && !isDateStr(date)) return fail(400, "Format tanggal tidak sesuai.");
     return J(200, buildPatientDays(await storage.allDocs(), { q: String(q.get("q") || "").slice(0, 80), date, today: today() }));
   };
   R["GET /api/admin/patients"] = R["GET /api/admin/daily"]; // nama lama, dipertahankan
@@ -200,11 +200,11 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
     const m = b.mail || {};
     const s = { siteName, allowRegister: typeof b.allowRegister === "boolean" ? b.allowRegister : null, mail: { subject: clip(m.subject, 150), intro: clip(m.intro, 300), footer: clip(m.footer, 300) } };
     await storage.setMeta("settings", s);
-    await log(doc, "pengaturan", "Menyimpan pengaturan sistem / template email");
+    await log(doc, "pengaturan", "Menyimpan pengaturan dan isi email pengingat");
     return J(200, { ok: true, settings: s });
   };
   R["POST /api/admin/settings/test-email"] = async ({ doc }) => {
-    if (!mailConfigured(env)) return fail(503, "SMTP belum dikonfigurasi (SMTP_HOST, SMTP_USER, SMTP_PASS).");
+    if (!mailConfigured(env)) return fail(503, "Pengiriman email belum diaktifkan. Hubungi pengelola teknis aplikasi.");
     const s = await getSettings(storage);
     const mail = buildEmail(doc.user, ["Contoh pengingat: Catat makanan hari ini", "Contoh pengingat: Cek asam urat bulanan"], env.APP_URL || env.URL || "", { tpl: s.mail, site: s.siteName });
     const r = await sendMail({ to: doc.user.email, ...mail }, env);
@@ -215,7 +215,7 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
   /* ---------- Log ---------- */
   R["GET /api/admin/logs"] = async ({ q }) => {
     const key = { mail: "maillog", error: "errlog", activity: "activity" }[q.get("kind")];
-    if (!key) return fail(400, "Jenis log tidak dikenal.");
+    if (!key) return fail(400, "Jenis riwayat tidak dikenal.");
     const l = (await storage.getMeta(key)) || [];
     return J(200, { rows: l.slice(-150).reverse() });
   };
@@ -244,8 +244,8 @@ export function createAdminRoutes({ storage, env, J, fail, adminKeyExplicit }) {
     const all = await storage.exportAll();
     all.users = all.users.map(({ pass, ...u }) => u); // hash sandi tidak ikut
     all.exportedAt = new Date().toISOString();
-    await log(doc, "backup", "Mengunduh backup data (JSON)");
-    return { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "content-disposition": `attachment; filename="gout-care-backup-${today()}.json"` }, body: JSON.stringify(all, null, 2) };
+    await log(doc, "backup", "Mengunduh cadangan data");
+    return { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "content-disposition": `attachment; filename="gout-care-cadangan-${today()}.json"` }, body: JSON.stringify(all, null, 2) };
   };
 
   return R;

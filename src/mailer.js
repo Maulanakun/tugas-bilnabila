@@ -36,14 +36,14 @@ export async function sendMail({ to, subject, html, text }, env) {
     return { ok: true, logged: true };
   }
   if (!mailConfigured(env))
-    return { ok: false, skipped: true, error: "Pengiriman email belum dikonfigurasi (SMTP_HOST, SMTP_USER, SMTP_PASS)." };
+    return { ok: false, skipped: true, error: "Pengiriman email belum diaktifkan. Hubungi pengelola aplikasi." };
   try {
     const tx = await transporter(env);
     await tx.sendMail({ from: env.MAIL_FROM || `Gout Care <${env.SMTP_USER}>`, to, subject, text, html });
     return { ok: true };
   } catch (e) {
     cached = { key: "", tx: null }; // buat koneksi baru pada percobaan berikutnya
-    const m = e && e.code === "EAUTH" ? "Login SMTP ditolak (cek SMTP_USER/SMTP_PASS)." : e && e.code === "MODULE_NOT_FOUND" ? "Paket nodemailer belum terpasang (jalankan npm install)." : (e && e.message) || String(e);
+    const m = e && e.code === "EAUTH" ? "Akun email pengirim ditolak. Hubungi pengelola aplikasi." : e && e.code === "MODULE_NOT_FOUND" ? "Fitur pengiriman email belum terpasang lengkap. Hubungi pengelola aplikasi." : (e && e.message) || String(e);
     return { ok: false, error: "Gagal mengirim email: " + m };
   }
 }

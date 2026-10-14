@@ -39,7 +39,7 @@ export function dueKey(r, local) {
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* Template admin: {{nama}} {{judul}} (daftar judul, dipisah koma) {{jumlah}}. Kosong = teks bawaan. */
-const fill = (t, v) => String(t).replace(/\{\{(nama|judul|jumlah)\}\}/g, (_, k) => v[k]);
+const fill = (t, v) => String(t).replace(/\{\{(nama|judul|jumlah)\}\}|\[(nama|judul|jumlah)\]/g, (_, a, b) => v[a || b]);
 
 export function buildEmail(user, titles, appUrl, { test = false, tpl = {}, site = "Gout Care" } = {}) {
   const nama = user.nama || "";

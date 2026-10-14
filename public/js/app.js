@@ -23,7 +23,7 @@ const App={
     const A=U.$("auth");A.hidden=false;A.innerHTML='<div class="ac"><div class="c"><p class="mu">Memuat…</p></div></div>';
     DB.onSessionLost(()=>{Api.setToken(null);DB.clear();UI.authMode="login";App.render();U.toast("Sesi berakhir, silakan masuk lagi.",6000)});
     const s=await Auth.restore();
-    if(s==="offline"){A.innerHTML='<div class="ac"><div class="c"><h2>Tidak bisa terhubung</h2><p class="mu">Server tidak bisa dihubungi. Periksa koneksi internet lalu coba lagi.</p><button class="b" onclick="location.reload()">Coba lagi</button></div></div>';return}
+    if(s==="offline"){A.innerHTML='<div class="ac"><div class="c"><h2>Tidak bisa terhubung</h2><p class="mu">Aplikasi belum bisa tersambung. Periksa koneksi internet lalu coba lagi.</p><button class="b" onclick="location.reload()">Coba lagi</button></div></div>';return}
     App.render();
     /* sinkron saat kembali ke tab ini (mis. data diubah dari HP/perangkat lain) */
     document.addEventListener("visibilitychange",async()=>{if(document.visibilityState==="visible"&&Auth.current()&&await Auth.refresh())App.render()});
